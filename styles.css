@@ -562,3 +562,108 @@ body.label-standard .deviceLabel {
     page-break-after: always !important;
   }
 }
+
+
+/* CDIR v10: DYMO 3.5 x 1.25 user-approved label target */
+:root {
+  --label-width: 3.5in;
+  --label-height: 1.25in;
+}
+
+body.label-large,
+body.label-standard {
+  --label-width: 3.5in;
+  --label-height: 1.25in;
+}
+
+.labelPreview {
+  align-items: flex-start !important;
+}
+
+.deviceLabel {
+  width: 3.5in !important;
+  height: 1.25in !important;
+  background: #fff !important;
+  border: 1px solid #9ca3af !important;
+  box-sizing: border-box !important;
+  padding: 0.045in 0.070in 0.040in 0.070in !important;
+  color: #000 !important;
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
+  font-stretch: condensed !important;
+  font-weight: 900 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 0 !important;
+  line-height: 0.90 !important;
+}
+
+.labelTop {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  align-items: baseline !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  font-weight: 900 !important;
+  line-height: 0.90 !important;
+  text-transform: uppercase !important;
+}
+
+.labelTopLeft,
+.labelTopRight {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.labelTopRight {
+  text-align: right !important;
+}
+
+.labelDataRow {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: 100% !important;
+  font-weight: 900 !important;
+  line-height: 0.90 !important;
+}
+
+.labelDataRow .key {
+  font-weight: 900 !important;
+}
+
+.labelBottom {
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  font-weight: 900 !important;
+  line-height: 0.90 !important;
+  display: block !important;
+}
+
+@media print {
+  @page {
+    size: 3.5in 1.25in;
+    margin: 0;
+  }
+
+  body,
+  html {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .deviceLabel {
+    width: 3.5in !important;
+    height: 1.25in !important;
+    border: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+    padding: 0.045in 0.070in 0.040in 0.070in !important;
+  }
+}

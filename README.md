@@ -1,4 +1,4 @@
-# Cellular Device Intake and Recycle — CDIR v9
+# Cellular Device Intake and Recycle — CDIR v10
 
 ## Purpose
 Static app for scanning or typing cellular device data, saving it to a project JSON file, printing labels, and exporting a final Excel workbook.
@@ -80,3 +80,19 @@ Use browser print dialog and select:
 - Arial Black / bold-first layout.
 - Individual row autofit, not whole-label shrinking.
 - IMEI and ICCID stay prominent.
+
+
+## v10 label layout
+- Built from the uploaded v9 ZIP.
+- DYMO target: 3.5" wide × 1.25" high.
+- Layout:
+  1. RECYCLE / device type
+  2. MODEL
+  3. USER
+  4. IMEI
+  5. ICCID
+  6. MTN asset-tag date, without prefixes
+- Removed QTY from the label.
+- Removed Department from the label.
+- Safe print margins retained to avoid clipped words.
+- Row-specific font fitting protects IMEI, ICCID, and bottom line.

@@ -1,4 +1,4 @@
-/* CDIR v9 clean build */
+/* CDIR v10 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -7,7 +7,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 9,
+  version: 10,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -281,47 +281,63 @@ function autofitLabels() {
     const rows = Array.from(label.querySelectorAll(".labelDataRow"));
     const bottom = label.querySelector(".labelBottom");
 
-    let topSize = $("labelSize").value === "standard" ? 9.5 : 15.5;
-    let rowSize = $("labelSize").value === "standard" ? 8.5 : 14.5;
-    let bottomSize = $("labelSize").value === "standard" ? 7.5 : 12.0;
+    let sizes = {
+      top: 9.8,
+      model: 8.7,
+      user: 8.8,
+      imei: 9.4,
+      iccid: 8.7,
+      bottom: 8.4
+    };
 
-    const minTop = $("labelSize").value === "standard" ? 6 : 10;
-    const minRow = $("labelSize").value === "standard" ? 6 : 9;
-    const minBottom = $("labelSize").value === "standard" ? 5.5 : 8;
+    const minimums = {
+      top: 7.2,
+      model: 6.8,
+      user: 6.8,
+      imei: 8.0,
+      iccid: 7.4,
+      bottom: 7.2
+    };
 
     function apply() {
-      top.style.fontSize = topSize + "pt";
-      rows.forEach(row => row.style.fontSize = rowSize + "pt");
-      bottom.style.fontSize = bottomSize + "pt";
+      top.style.fontSize = sizes.top + "pt";
+      if (rows[0]) rows[0].style.fontSize = sizes.model + "pt";
+      if (rows[1]) rows[1].style.fontSize = sizes.user + "pt";
+      if (rows[2]) rows[2].style.fontSize = sizes.imei + "pt";
+      if (rows[3]) rows[3].style.fontSize = sizes.iccid + "pt";
+      bottom.style.fontSize = sizes.bottom + "pt";
     }
 
     apply();
 
+    // Fit horizontal content per row without shrinking critical rows unless needed.
+    fitElement(top, "top");
+    if (rows[0]) fitElement(rows[0], "model");
+    if (rows[1]) fitElement(rows[1], "user");
+    if (rows[2]) fitElement(rows[2], "imei");
+    if (rows[3]) fitElement(rows[3], "iccid");
+    fitElement(bottom, "bottom");
+
+    // If vertical overflow remains, shrink non-critical rows first.
     let guard = 0;
     while (guard < 80 && label.scrollHeight > label.clientHeight + 1) {
-      if (rowSize > minRow) rowSize -= 0.25;
-      if (bottomSize > minBottom && guard % 2 === 0) bottomSize -= 0.25;
-      if (topSize > minTop && guard % 3 === 0) topSize -= 0.25;
+      if (sizes.top > minimums.top) sizes.top -= 0.15;
+      else if (sizes.model > minimums.model) sizes.model -= 0.15;
+      else if (sizes.user > minimums.user) sizes.user -= 0.15;
+      else if (sizes.bottom > minimums.bottom) sizes.bottom -= 0.15;
+      else if (sizes.iccid > minimums.iccid) sizes.iccid -= 0.10;
+      else if (sizes.imei > minimums.imei) sizes.imei -= 0.10;
       apply();
       guard++;
     }
 
-    rows.forEach(row => {
-      let size = parseFloat(row.style.fontSize);
+    function fitElement(el, key) {
       let attempts = 0;
-      while (attempts < 40 && row.scrollWidth > row.clientWidth + 1 && size > minRow) {
-        size -= 0.25;
-        row.style.fontSize = size + "pt";
+      while (attempts < 80 && el.scrollWidth > el.clientWidth + 1 && sizes[key] > minimums[key]) {
+        sizes[key] -= 0.15;
+        apply();
         attempts++;
       }
-    });
-
-    let bSize = parseFloat(bottom.style.fontSize);
-    let bGuard = 0;
-    while (bGuard < 40 && bottom.scrollWidth > bottom.clientWidth + 1 && bSize > minBottom) {
-      bSize -= 0.25;
-      bottom.style.fontSize = bSize + "pt";
-      bGuard++;
     }
   });
 }
@@ -334,8 +350,7 @@ function clearPreview() {
 function labelHtml(r) {
   const title = ($("labelTitle").value.trim() || "RECYCLE").toUpperCase();
   const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
-  const model = r.model || "";
-  const userDept = combine(r.userName, r.department);
+  const bottom = [r.mtn, r.assetTag, shortDate(r.date)].filter(Boolean).join("   ");
 
   return `
     <section class="deviceLabel" data-autofit="1">
@@ -343,15 +358,11 @@ function labelHtml(r) {
         <div class="labelTopLeft">${esc(title)}</div>
         <div class="labelTopRight">${esc(group)}</div>
       </div>
-      ${dataRow("MODEL", model)}
-      ${dataRow("USER/DEPT", userDept)}
+      ${dataRow("MODEL", r.model)}
+      ${dataRow("USER", r.userName)}
       ${dataRow("IMEI", r.imei)}
       ${dataRow("ICCID", r.iccid)}
-      <div class="labelBottom">
-        <div>${bottomItem("MTN", r.mtn)}</div>
-        <div>${bottomItem("ASSET", r.assetTag)}</div>
-        <div>${bottomItem("DATE", r.date)}</div>
-      </div>
+      <div class="labelBottom">${esc(bottom)}</div>
     </section>
   `;
 }
@@ -360,16 +371,20 @@ function dataRow(label, value) {
   return `<div class="labelDataRow"><span class="key">${esc(label)}:</span> ${esc(value || "")}</div>`;
 }
 
-function bottomItem(label, value) {
-  return value ? `<span class="key">${esc(label)}:</span> ${esc(value)}` : `<span class="key">${esc(label)}:</span>`;
+function shortDate(value) {
+  if (!value) return "";
+  const text = String(value).trim();
+  const m = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return `${m[2]}/${m[3]}/${m[1].slice(2)}`;
+  return text;
 }
 
-function combine(a, b) {
-  a = String(a || "").trim();
-  b = String(b || "").trim();
-  if (a && b) return `${a} — ${b}`;
-  return a || b;
+
+function dataRow(label, value) {
+  return `<div class="labelDataRow"><span class="key">${esc(label)}:</span> ${esc(value || "")}</div>`;
 }
+
+
 
 
 function editRecord(i) {
@@ -436,7 +451,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 9,
+    version: 10,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
