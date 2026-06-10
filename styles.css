@@ -108,6 +108,11 @@ input:focus, select:focus {
   margin-top: 12px;
 }
 
+.topControls {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
 button {
   border: 0;
   background: var(--button);
@@ -188,8 +193,65 @@ td button {
 }
 
 .printCheck {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.labelPreviewScreen {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 80px;
+}
+
+.screenLabel {
+  width: 4in;
+  min-height: 2.125in;
+  background: white;
+  border: 1px solid #9ca3af;
+  padding: 0.09in 0.12in;
+  font-size: 9pt;
+  line-height: 1.16;
+  overflow: hidden;
+}
+
+.screenLabel.small {
+  width: 3.5in;
+  min-height: 1.125in;
+  font-size: 7.5pt;
+}
+
+.labelTitle {
+  font-size: 11pt;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.02in;
+  margin-bottom: 0.03in;
+}
+
+.screenLabel.small .labelTitle {
+  font-size: 8.5pt;
+}
+
+.rule {
+  border-top: 1px solid #000;
+  margin-bottom: 0.04in;
+}
+
+.labelLine {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.015in;
+}
+
+.labelLine span {
+  font-weight: 800;
+}
+
+#printArea {
+  display: none;
 }
 
 footer {
@@ -205,4 +267,74 @@ footer {
   .grid { grid-template-columns: 1fr; }
   .compactGrid { grid-template-columns: 1fr; }
   .scanBox { grid-template-columns: 1fr; }
+}
+
+@page {
+  size: 4in 2.125in;
+  margin: 0;
+}
+
+body.print-large {
+  --print-width: 4in;
+  --print-height: 2.125in;
+  --print-font: 9pt;
+  --print-title: 11pt;
+}
+
+body.print-standard {
+  --print-width: 3.5in;
+  --print-height: 1.125in;
+  --print-font: 7.5pt;
+  --print-title: 8.5pt;
+}
+
+@media print {
+  body {
+    background: white;
+  }
+
+  #appArea {
+    display: none !important;
+  }
+
+  #printArea {
+    display: block !important;
+  }
+
+  .printLabel {
+    width: var(--print-width);
+    height: var(--print-height);
+    box-sizing: border-box;
+    padding: 0.09in 0.12in;
+    page-break-after: always;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: var(--print-font);
+    line-height: 1.16;
+    color: #000;
+  }
+
+  .printLabel .labelTitle {
+    font-size: var(--print-title);
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.02in;
+    margin-bottom: 0.03in;
+  }
+
+  .printLabel .rule {
+    border-top: 1px solid #000;
+    margin-bottom: 0.04in;
+  }
+
+  .printLabel .labelLine {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.015in;
+  }
+
+  .printLabel .labelLine span {
+    font-weight: 800;
+  }
 }
