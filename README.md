@@ -1,7 +1,7 @@
-# Cellular Device Intake and Recycle — CDIR v1
+# Cellular Device Intake and Recycle — CDIR v2
 
 ## Purpose
-Static PWA for scanning or typing cellular device data, saving it to a project JSON file, and exporting a final Excel workbook.
+Static PWA for scanning or typing cellular device data, saving it to a project JSON file, printing device labels, and exporting a final Excel workbook.
 
 ## No APIs
 This version does not use:
@@ -10,24 +10,32 @@ This version does not use:
 - database
 - login integration
 - browser local storage as the source of truth
-
-## Recommended SharePoint use
-Upload the app folder to the Team SharePoint site under the Cellular Device section, then link to `index.html`.
-
-Recommended document library folders:
-
-Cellular Device Intake and Recycle/
-- App/
-- Project Files/
-- Exports/
-- Templates/
+- DYMO API
 
 ## Recommended daily workflow
 1. Open `index.html`.
 2. Click `Create New Project` or `Open Project File`.
 3. Save the JSON project file to a local, network, USB, or synced SharePoint/OneDrive folder.
 4. Scan/type devices.
-5. Export Excel workbook when the recycle or inventory project is complete.
+5. Print labels as needed.
+6. Export Excel workbook when the recycle or inventory project is complete.
+
+## Label printing
+Added:
+- Per-record `Label` button
+- Print selected labels
+- Print all labels
+- Label title setting
+- Label size setting:
+  - 2-1/8" x 4" Large Address
+  - 1-1/8" x 3-1/2" Standard Address
+
+## DYMO LabelWriter 450 Turbo use
+1. Click `Label`, `Print Selected Labels`, or `Print All Labels`.
+2. Browser opens a print label page.
+3. Click `Print Labels`.
+4. Select `DYMO LabelWriter 450 Turbo`.
+5. Set the matching label size in printer preferences.
 
 ## Browser note
 The direct file save workflow uses the File System Access API. It works best in Chrome or Edge.
