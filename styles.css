@@ -738,3 +738,125 @@ body.label-standard {
     page-break-after: always !important;
   }
 }
+
+
+/* CDIR v15: global ID QR payload */
+.qrOnlyLabel {
+  grid-template-columns: 1.16in 2.06in !important;
+  gap: 0.075in !important;
+}
+
+.qrOnlyBox {
+  width: 1.10in !important;
+  height: 1.10in !important;
+}
+
+.qrOnlyBox img,
+.qrOnlyBox canvas,
+.qrOnlyBox svg {
+  width: 1.10in !important;
+  height: 1.10in !important;
+}
+
+.qrOnlyTitle {
+  font-size: 11pt !important;
+}
+
+.qrOnlyId {
+  font-size: 15pt !important;
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
+  font-weight: 900 !important;
+  margin: 0.025in 0 0.035in !important;
+  white-space: nowrap !important;
+}
+
+.qrOnlyLine {
+  font-size: 7.8pt !important;
+}
+
+
+/* CDIR v16: QR-only label fix */
+.qrOnlyLabel {
+  width: 3.5in !important;
+  height: 1.25in !important;
+  background: white !important;
+  border: 1px solid #9ca3af !important;
+  box-sizing: border-box !important;
+  padding: 0.035in 0.070in 0.035in 0.070in !important;
+  color: #000 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.18in !important;
+}
+
+.qrOnlyBox {
+  width: 1.05in !important;
+  height: 1.05in !important;
+  min-width: 1.05in !important;
+  min-height: 1.05in !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.qrOnlyBox img,
+.qrOnlyBox canvas,
+.qrOnlyBox svg {
+  width: 1.05in !important;
+  height: 1.05in !important;
+  display: block !important;
+  image-rendering: pixelated !important;
+}
+
+.qrOnlyText {
+  width: 1.75in !important;
+  min-width: 1.75in !important;
+  overflow: hidden !important;
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.qrOnlyTitle {
+  font-size: 12pt !important;
+  display: block !important;
+  text-align: left !important;
+  margin-bottom: 0.08in !important;
+  white-space: nowrap !important;
+}
+
+.qrOnlyId {
+  font-size: 20pt !important;
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+}
+
+.qrOnlyLine {
+  display: none !important;
+}
+
+@media print {
+  @page {
+    size: 3.5in 1.25in;
+    margin: 0;
+  }
+
+  .qrOnlyLabel {
+    border: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+    padding: 0.035in 0.070in 0.035in 0.070in !important;
+  }
+}

@@ -1,4 +1,4 @@
-# Cellular Device Intake and Recycle — CDIR v14
+# Cellular Device Intake and Recycle — CDIR v16
 
 ## Purpose
 Static app for scanning or typing cellular device data, saving it to a project JSON file, printing labels, and exporting a final Excel workbook.
@@ -108,3 +108,22 @@ Use browser print dialog and select:
   - Print All QR Labels
 - QR payload is compact for better scan reliability on a 0.98" QR.
 - No API or internet dependency after files are uploaded.
+
+
+## v15 global QR ID
+- Rebuilt from v14.
+- QR payload is now only the global CDIR ID, example: `CDIR-000001`.
+- QR should scan much more reliably because the payload is short.
+- Full device record remains in the project JSON.
+- Existing records without a CDIR ID are assigned one automatically when loaded or previewed.
+- New records are assigned the next global ID when added.
+- Text labels remain unchanged from v10.
+
+
+## v16 QR label fix
+- Rebuilt from v15.
+- Text labels remain unchanged.
+- QR labels are now QR-only plus large CDIR ID.
+- Removed model/user/IMEI text from the QR label to prevent overlap.
+- QR payload still contains only the global CDIR ID, example: `CDIR-000122`.
+- Layout target: 3.5" wide × 1.25" high.

@@ -1,4 +1,4 @@
-/* CDIR v15 clean build */
+/* CDIR v16 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -7,7 +7,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 15,
+  version: 16,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -455,7 +455,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 15,
+    version: 16,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: [],
@@ -598,20 +598,14 @@ function previewQrRecords(records) {
 }
 
 function qrOnlyLabelHtml(r) {
-  const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
-  const bottom = [r.mtn, r.assetTag, shortDate(r.date)].filter(Boolean).join("   ");
   const id = ensureCdirId(r);
-  const qrSvg = ""; // QR is rendered by renderRealQrCodes into .qrOnlyBox
 
   return `
     <section class="qrOnlyLabel">
       <div class="qrOnlyBox" data-qr="${escAttr(id)}"></div>
       <div class="qrOnlyText">
-        <div class="qrOnlyTitle"><span>QR RECORD</span><span>${esc(group)}</span></div>
+        <div class="qrOnlyTitle">QR RECORD</div>
         <div class="qrOnlyId">${esc(id)}</div>
-        <div class="qrOnlyLine">MODEL: ${esc(r.model || "")}</div>
-        <div class="qrOnlyLine">IMEI: ${esc(r.imei || "")}</div>
-        <div class="qrOnlyLine">${esc(bottom)}</div>
       </div>
     </section>
   `;
