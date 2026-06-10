@@ -456,3 +456,109 @@ body.label-large {
     page-break-after: always !important;
   }
 }
+
+
+/* CDIR v9: match physical label layout */
+:root {
+  --label-width: 4in;
+  --label-height: 2.125in;
+}
+
+body.label-large {
+  --label-width: 4in;
+  --label-height: 2.125in;
+}
+
+body.label-standard {
+  --label-width: 3.5in;
+  --label-height: 1.125in;
+}
+
+.labelPreview {
+  align-items: flex-start;
+}
+
+.deviceLabel {
+  width: var(--label-width) !important;
+  height: var(--label-height) !important;
+  background: white !important;
+  border: 1px solid #9ca3af !important;
+  padding: 0.050in 0.070in 0.040in 0.070in !important;
+  font-family: "Arial Black", Arial, Helvetica, sans-serif !important;
+  overflow: hidden !important;
+  color: #000 !important;
+  display: grid !important;
+  grid-template-rows: 0.31in 0.285in 0.285in 0.285in 0.285in 0.285in !important;
+  gap: 0.010in !important;
+  box-sizing: border-box !important;
+}
+
+.labelTop {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  align-items: end !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+.labelTopLeft,
+.labelTopRight {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.labelTopRight {
+  text-align: right !important;
+}
+
+.labelDataRow {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+}
+
+.labelDataRow .key,
+.labelBottom .key {
+  font-weight: 900 !important;
+}
+
+.labelBottom {
+  display: grid !important;
+  grid-template-columns: 1.12fr 1fr 1fr !important;
+  gap: 0.050in !important;
+  align-items: end !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+}
+
+.labelBottom div {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body.label-standard .deviceLabel {
+  padding: 0.025in 0.040in !important;
+  grid-template-rows: 0.16in 0.145in 0.145in 0.145in 0.145in 0.145in !important;
+  gap: 0.004in !important;
+}
+
+@media print {
+  @page {
+    size: 4in 2.125in;
+    margin: 0;
+  }
+
+  .deviceLabel {
+    border: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+  }
+}
