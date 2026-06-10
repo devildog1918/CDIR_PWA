@@ -1,4 +1,4 @@
-/* CDIR v14 clean build */
+/* CDIR v15 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -7,7 +7,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 14,
+  version: 15,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -139,6 +139,7 @@ function clearForm() {
 
 async function addRecord() {
   const r = formRecord();
+  ensureCdirId(r);
   const warnings = validate(r);
   project.records.push(r);
   selected.add(project.records.length - 1);
@@ -454,10 +455,11 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 14,
+    version: 15,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
-    records: []
+    records: [],
+    nextCdirNumber: 1
   };
   selected = new Set();
   fileHandle = null;
@@ -488,6 +490,7 @@ async function openProject() {
     const text = await file.text();
     project = JSON.parse(text);
     if (!Array.isArray(project.records)) project.records = [];
+    assignMissingCdirIds();
     selected = new Set(project.records.map((_, i) => i));
     renderRecords();
     clearPreview();
@@ -524,6 +527,37 @@ function updateStatus(text) {
 }
 
 
+
+function ensureCdirId(record) {
+  if (record.cdirId) return record.cdirId;
+
+  if (!project.nextCdirNumber || project.nextCdirNumber < 1) {
+    project.nextCdirNumber = nextCdirNumberFromRecords();
+  }
+
+  record.cdirId = "CDIR-" + String(project.nextCdirNumber).padStart(6, "0");
+  project.nextCdirNumber += 1;
+  return record.cdirId;
+}
+
+function assignMissingCdirIds() {
+  if (!Array.isArray(project.records)) return;
+  if (!project.nextCdirNumber || project.nextCdirNumber < 1) {
+    project.nextCdirNumber = nextCdirNumberFromRecords();
+  }
+
+  project.records.forEach(record => ensureCdirId(record));
+}
+
+function nextCdirNumberFromRecords() {
+  let max = 0;
+  (project.records || []).forEach(record => {
+    const match = String(record.cdirId || "").match(/^CDIR-(\d+)$/);
+    if (match) max = Math.max(max, Number(match[1]));
+  });
+  return max + 1;
+}
+
 function previewSelectedQr() {
   const rows = getSelectedRecords();
   if (!rows.length) {
@@ -556,6 +590,9 @@ function printQrRecords(records) {
 }
 
 function previewQrRecords(records) {
+  records.forEach(record => ensureCdirId(record));
+  project.updated = new Date().toISOString();
+  saveProject(false);
   $("labelPreview").innerHTML = records.map(qrOnlyLabelHtml).join("");
   renderRealQrCodes();
 }
@@ -563,15 +600,16 @@ function previewQrRecords(records) {
 function qrOnlyLabelHtml(r) {
   const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
   const bottom = [r.mtn, r.assetTag, shortDate(r.date)].filter(Boolean).join("   ");
-  const payload = qrPayload(r);
+  const id = ensureCdirId(r);
+  const qrSvg = ""; // QR is rendered by renderRealQrCodes into .qrOnlyBox
 
   return `
     <section class="qrOnlyLabel">
-      <div class="qrOnlyBox" data-qr="${escAttr(payload)}"></div>
+      <div class="qrOnlyBox" data-qr="${escAttr(id)}"></div>
       <div class="qrOnlyText">
         <div class="qrOnlyTitle"><span>QR RECORD</span><span>${esc(group)}</span></div>
+        <div class="qrOnlyId">${esc(id)}</div>
         <div class="qrOnlyLine">MODEL: ${esc(r.model || "")}</div>
-        <div class="qrOnlyLine">USER: ${esc(r.userName || "")}</div>
         <div class="qrOnlyLine">IMEI: ${esc(r.imei || "")}</div>
         <div class="qrOnlyLine">${esc(bottom)}</div>
       </div>
@@ -579,16 +617,9 @@ function qrOnlyLabelHtml(r) {
   `;
 }
 
+
 function qrPayload(r) {
-  return [
-    "CDIR1",
-    `IMEI=${r.imei || ""}`,
-    `ICCID=${r.iccid || ""}`,
-    `MTN=${r.mtn || ""}`,
-    `ASSET=${r.assetTag || ""}`,
-    `MODEL=${r.model || ""}`,
-    `USER=${r.userName || ""}`
-  ].join("|");
+  return ensureCdirId(r);
 }
 
 function renderRealQrCodes() {
