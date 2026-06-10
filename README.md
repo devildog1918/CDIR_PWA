@@ -1,4 +1,4 @@
-# Cellular Device Intake and Recycle — CDIR v12
+# Cellular Device Intake and Recycle — CDIR v13
 
 ## Purpose
 Static app for scanning or typing cellular device data, saving it to a project JSON file, printing labels, and exporting a final Excel workbook.
@@ -98,11 +98,9 @@ Use browser print dialog and select:
 - Row-specific font fitting protects IMEI, ICCID, and bottom line.
 
 
-## v12 fix
-- Rebuilt from v10, not v11.
-- Text label is unchanged from v10.
-- QR does not modify or combine with the text label.
-- Added separate QR print buttons:
-  - Print Selected QR Labels
-  - Print All QR Labels
-- QR labels are separate labels.
+## v13 QR print-path fix
+- Rebuilt from v10 to preserve the working text label.
+- Added QR preview/print as a separate label type.
+- QR buttons now use a simplified local code generator so the print buttons do not fail.
+- Important: v13 QR image is a print-flow test code, not final standards-scannable QR yet.
+- Once the print buttons work, replace the test generator with a standards QR library.

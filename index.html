@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cellular Device Intake and Recycle</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="styles.css?v=12" />
+  <link rel="stylesheet" href="styles.css?v=13" />
 </head>
 <body>
   <div id="app">
     <header>
       <div>
         <h1>Cellular Device Intake and Recycle</h1>
-        <p class="sub">CDIR v12 — scan/type device data, save project file, print labels, export spreadsheet.</p>
+        <p class="sub">CDIR v13 — scan/type device data, save project file, print labels, export spreadsheet.</p>
       </div>
       <div class="status" id="saveStatus">No project file open</div>
     </header>
@@ -163,12 +163,13 @@
           <button id="previewSelectedBtn">Preview Selected Labels</button>
           <button id="printSelectedBtn">Print Selected Text Labels</button>
           <button id="printAllBtn" class="secondary">Print All Text Labels</button>
+          <button id="previewSelectedQrBtn" class="secondary">Preview Selected QR Labels</button>
           <button id="printSelectedQrBtn" class="secondary">Print Selected QR Labels</button>
           <button id="printAllQrBtn" class="secondary">Print All QR Labels</button>
           <button id="clearPreviewBtn" class="secondary">Clear Preview</button>
         </div>
 
-        <p class="hint">Text labels keep the v10 layout. QR labels print separately and do not change the text label. Select DYMO LabelWriter 450 Turbo in the browser print dialog.</p>
+        <p class="hint">The printout uses the exact label preview shown below. Select DYMO LabelWriter 450 Turbo in the browser print dialog.</p>
       </section>
 
       <section class="card printOnlyCard">
@@ -189,9 +190,9 @@
       </section>
     </main>
 
-    <footer>CDIR v12 — static app, no APIs, no service worker cache</footer>
+    <footer>CDIR v13 — static app, no APIs, no service worker cache</footer>
   </div>
 
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

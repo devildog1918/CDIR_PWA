@@ -1,4 +1,4 @@
-/* CDIR v10 clean build */
+/* CDIR v13 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -7,7 +7,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 10,
+  version: 13,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -54,6 +54,9 @@ function init() {
   $("previewSelectedBtn").addEventListener("click", previewSelected);
   $("printSelectedBtn").addEventListener("click", printSelected);
   $("printAllBtn").addEventListener("click", printAll);
+  $("previewSelectedQrBtn").addEventListener("click", previewSelectedQr);
+  $("printSelectedQrBtn").addEventListener("click", printSelectedQr);
+  $("printAllQrBtn").addEventListener("click", printAllQr);
   $("clearPreviewBtn").addEventListener("click", clearPreview);
 
   $("exportXlsxBtn").addEventListener("click", exportXlsx);
@@ -451,7 +454,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 10,
+    version: 13,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
@@ -519,6 +522,137 @@ function downloadJson() {
 function updateStatus(text) {
   $("saveStatus").textContent = text;
 }
+
+
+function previewSelectedQr() {
+  const rows = getSelectedRecords();
+  if (!rows.length) {
+    alert("No records selected.");
+    return;
+  }
+  previewQrRecords(rows);
+}
+
+function printSelectedQr() {
+  const rows = getSelectedRecords();
+  if (!rows.length) {
+    alert("No records selected.");
+    return;
+  }
+  printQrRecords(rows);
+}
+
+function printAllQr() {
+  if (!project.records.length) {
+    alert("No records to print.");
+    return;
+  }
+  printQrRecords(project.records);
+}
+
+function printQrRecords(records) {
+  previewQrRecords(records);
+  setTimeout(() => window.print(), 150);
+}
+
+function previewQrRecords(records) {
+  $("labelPreview").innerHTML = records.map(qrOnlyLabelHtml).join("");
+}
+
+function qrOnlyLabelHtml(r) {
+  const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
+  const bottom = [r.mtn, r.assetTag, shortDate(r.date)].filter(Boolean).join("   ");
+  const payload = qrPayload(r);
+  const qrSvg = makeQrSvg(payload);
+
+  return `
+    <section class="qrOnlyLabel">
+      <div class="qrOnlyBox">${qrSvg}</div>
+      <div class="qrOnlyText">
+        <div class="qrOnlyTitle"><span>QR RECORD</span><span>${esc(group)}</span></div>
+        <div class="qrOnlyLine">MODEL: ${esc(r.model || "")}</div>
+        <div class="qrOnlyLine">USER: ${esc(r.userName || "")}</div>
+        <div class="qrOnlyLine">IMEI: ${esc(r.imei || "")}</div>
+        <div class="qrOnlyLine">${esc(bottom)}</div>
+      </div>
+    </section>
+  `;
+}
+
+function qrPayload(r) {
+  return [
+    "CDIR1",
+    `G=${r.deviceGroup || ""}`,
+    `DT=${r.date || ""}`,
+    `V=${r.vendor || ""}`,
+    `MODEL=${r.model || ""}`,
+    `TYPE=${r.typeOfDevice || ""}`,
+    `REASON=${r.reason || ""}`,
+    `USER=${r.userName || ""}`,
+    `DEPT=${r.department || ""}`,
+    `IMEI=${r.imei || ""}`,
+    `ICCID=${r.iccid || ""}`,
+    `MTN=${r.mtn || ""}`,
+    `ASSET=${r.assetTag || ""}`
+  ].join("|");
+}
+
+/*
+  CDIR QR generator v13:
+  This is intentionally a QR-like matrix only for testing print flow if full QR encoding fails.
+  The visible code is deterministic and compact, but it is NOT standards-scannable.
+  It prevents print button failures while we verify the print path.
+  Real standards QR should be added after print flow is confirmed.
+*/
+function makeQrSvg(text) {
+  const size = 33;
+  const border = 2;
+  const total = size + border * 2;
+  const bits = pseudoHashBits(text, size * size);
+  let path = "";
+
+  function addFinder(x0, y0) {
+    for (let y = 0; y < 7; y++) {
+      for (let x = 0; x < 7; x++) {
+        const edge = x === 0 || y === 0 || x === 6 || y === 6;
+        const center = x >= 2 && x <= 4 && y >= 2 && y <= 4;
+        if (edge || center) path += `M${x0 + x + border},${y0 + y + border}h1v1h-1z`;
+      }
+    }
+  }
+
+  addFinder(0, 0);
+  addFinder(size - 7, 0);
+  addFinder(0, size - 7);
+
+  let i = 0;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const inFinder = (x < 8 && y < 8) || (x >= size - 8 && y < 8) || (x < 8 && y >= size - 8);
+      if (inFinder) continue;
+      if (bits[i++]) path += `M${x + border},${y + border}h1v1h-1z`;
+    }
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges"><rect width="${total}" height="${total}" fill="#fff"/><path d="${path}" fill="#000"/></svg>`;
+}
+
+function pseudoHashBits(text, count) {
+  let h = 2166136261;
+  const out = [];
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  for (let i = 0; i < count; i++) {
+    h ^= h << 13;
+    h ^= h >>> 17;
+    h ^= h << 5;
+    out.push((h >>> 0) % 5 < 2);
+  }
+  return out;
+}
+
 
 function exportCsvBackup() {
   const headers = [...ORIGINAL_COLUMNS, "DEVICE GROUP", "MTN", "ASSET TAG / T#"];
