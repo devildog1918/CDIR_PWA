@@ -669,62 +669,61 @@ body.label-standard {
 }
 
 
-/* CDIR v11 optional QR label */
-.checkLabel {
-  justify-content: end;
-}
-
-.checkLabel input {
-  width: 22px;
-  height: 22px;
-}
-
-.deviceLabel.qrLabel {
-  display: grid !important;
-  grid-template-columns: 2.30in 1.00in !important;
-  grid-template-rows: 1fr !important;
-  column-gap: 0.055in !important;
-  padding: 0.045in 0.060in 0.040in 0.070in !important;
-}
-
-.qrText {
-  min-width: 0 !important;
+/* CDIR v12: separate QR label. Text label remains v10. */
+.qrOnlyLabel {
+  width: 3.5in !important;
+  height: 1.25in !important;
+  background: white !important;
+  border: 1px solid #9ca3af !important;
+  box-sizing: border-box !important;
+  padding: 0.045in 0.070in 0.040in 0.070in !important;
+  color: #000 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
   overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-  line-height: 0.90 !important;
-}
-
-.qrText .labelTop {
   display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
+  grid-template-columns: 1.05in 2.20in !important;
+  gap: 0.08in !important;
+  align-items: center !important;
 }
 
-.qrBox {
-  width: 0.98in !important;
-  height: 0.98in !important;
-  align-self: center !important;
-  justify-self: end !important;
+.qrOnlyBox {
+  width: 1.00in !important;
+  height: 1.00in !important;
 }
 
-.qrBox svg {
+.qrOnlyBox svg {
   width: 100% !important;
   height: 100% !important;
   display: block !important;
 }
 
-.qrSmall {
+.qrOnlyText {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
+  font-weight: 900 !important;
+  line-height: 0.95 !important;
+}
+
+.qrOnlyTitle {
+  font-size: 11pt !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: 0.04in !important;
+}
+
+.qrOnlyLine {
+  font-size: 8.2pt !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  font-weight: 900 !important;
-  line-height: 0.90 !important;
 }
 
 @media print {
-  .deviceLabel.qrLabel {
-    grid-template-columns: 2.30in 1.00in !important;
-    column-gap: 0.055in !important;
+  .qrOnlyLabel {
+    border: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
   }
 }

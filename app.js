@@ -1,4 +1,4 @@
-/* CDIR v11 clean build */
+/* CDIR v10 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -7,7 +7,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 11,
+  version: 10,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -30,9 +30,7 @@ function init() {
 
   $("deviceGroup").addEventListener("change", setDefaultsForGroup);
   $("labelSize").addEventListener("change", applyLabelSize);
-  if ($("includeQr")) $("includeQr").addEventListener("change", () => previewRecords(getCurrentPreviewRecords()));
   $("labelDensity").addEventListener("change", () => previewRecords(getCurrentPreviewRecords()));
-  $("includeQr").addEventListener("change", () => previewRecords(getCurrentPreviewRecords()));
 
   $("newProjectBtn").addEventListener("click", createProject);
   $("openProjectBtn").addEventListener("click", openProject);
@@ -350,10 +348,6 @@ function clearPreview() {
 }
 
 function labelHtml(r) {
-  return $("includeQr")?.checked ? qrLabelHtml(r) : standardLabelHtml(r);
-}
-
-function standardLabelHtml(r) {
   const title = ($("labelTitle").value.trim() || "RECYCLE").toUpperCase();
   const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
   const bottom = [r.mtn, r.assetTag, shortDate(r.date)].filter(Boolean).join("   ");
@@ -372,62 +366,6 @@ function standardLabelHtml(r) {
     </section>
   `;
 }
-
-function qrLabelHtml(r) {
-  const title = ($("labelTitle").value.trim() || "RECYCLE").toUpperCase();
-  const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
-  const bottom = [r.mtn, r.assetTag, shortDate(r.date)].filter(Boolean).join("   ");
-  const payload = qrPayload(r);
-  const qrSvg = makeQrSvg(payload);
-
-  return `
-    <section class="deviceLabel qrLabel" data-autofit="1">
-      <div class="qrText">
-        <div class="labelTop">
-          <div class="labelTopLeft">${esc(title)}</div>
-          <div class="labelTopRight">${esc(group)}</div>
-        </div>
-        ${dataRow("MODEL", r.model)}
-        ${dataRow("USER", r.userName)}
-        ${dataRow("IMEI", r.imei)}
-        <div class="qrSmall">${esc(bottom)}</div>
-      </div>
-      <div class="qrBox">${qrSvg}</div>
-    </section>
-  `;
-}
-
-function qrPayload(r) {
-  // Compact plain text. Easy to read if scanned by a phone, and can be parsed by CDIR later.
-  return [
-    "CDIR1",
-    `G=${r.deviceGroup || ""}`,
-    `DT=${r.date || ""}`,
-    `V=${r.vendor || ""}`,
-    `MODEL=${r.model || ""}`,
-    `TYPE=${r.typeOfDevice || ""}`,
-    `REASON=${r.reason || ""}`,
-    `USER=${r.userName || ""}`,
-    `DEPT=${r.department || ""}`,
-    `IMEI=${r.imei || ""}`,
-    `ICCID=${r.iccid || ""}`,
-    `MTN=${r.mtn || ""}`,
-    `ASSET=${r.assetTag || ""}`
-  ].join("|");
-}
-
-function dataRow(label, value) {
-  return `<div class="labelDataRow"><span class="key">${esc(label)}:</span> ${esc(value || "")}</div>`;
-}
-
-function shortDate(value) {
-  if (!value) return "";
-  const text = String(value).trim();
-  const m = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (m) return `${m[2]}/${m[3]}/${m[1].slice(2)}`;
-  return text;
-}
-
 
 function dataRow(label, value) {
   return `<div class="labelDataRow"><span class="key">${esc(label)}:</span> ${esc(value || "")}</div>`;
@@ -513,7 +451,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 11,
+    version: 10,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
@@ -701,175 +639,5 @@ function concatArrays(arrays){const len=arrays.reduce((sum,a)=>sum+a.length,0);c
 let crcTable = null;
 function makeCrcTable(){const table=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=((c&1)?(0xedb88320^(c>>>1)):(c>>>1));table[n]=c>>>0;}return table;}
 function crc32(data){if(!crcTable)crcTable=makeCrcTable();let c=0xffffffff;for(let i=0;i<data.length;i++)c=crcTable[(c^data[i])&0xff]^(c>>>8);return(c^0xffffffff)>>>0;}
-
-
-
-/* Minimal QR generator wrapper for CDIR v11.
-   Uses a compact SVG output. Error correction and matrix generation are handled locally.
-   No API, no internet, no external file.
-*/
-function makeQrSvg(text) {
-  try {
-    const qr = SimpleQR.encode(text);
-    const n = qr.length;
-    const scale = 4;
-    let paths = [];
-    for (let y = 0; y < n; y++) {
-      let x = 0;
-      while (x < n) {
-        if (!qr[y][x]) { x++; continue; }
-        let x0 = x;
-        while (x < n && qr[y][x]) x++;
-        paths.push(`M${x0} ${y}h${x-x0}v1h-${x-x0}z`);
-      }
-    }
-    return `<svg viewBox="0 0 ${n} ${n}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-label="QR Code"><rect width="${n}" height="${n}" fill="#fff"/><path d="${paths.join("")}" fill="#000"/></svg>`;
-  } catch (e) {
-    return `<div style="font-size:7pt;font-weight:900">QR ERROR</div>`;
-  }
-}
-
-/* Based on QR Code Model 2 byte mode, ECC level L, versions 1-10, mask 0.
-   Purpose-built for CDIR labels. */
-const SimpleQR = (() => {
-  const GF_EXP = new Array(512), GF_LOG = new Array(256);
-  let x = 1;
-  for (let i = 0; i < 255; i++) {
-    GF_EXP[i] = x; GF_LOG[x] = i;
-    x <<= 1; if (x & 0x100) x ^= 0x11d;
-  }
-  for (let i = 255; i < 512; i++) GF_EXP[i] = GF_EXP[i - 255];
-
-  const DATA_CODEWORDS_L = [0,19,34,55,80,108,136,156,194,232,274];
-  const ECC_CODEWORDS_L  = [0,7,10,15,20,26,18,20,24,30,18];
-
-  function encode(text) {
-    const bytes = Array.from(new TextEncoder().encode(text));
-    let version = 1;
-    while (version <= 10 && bytes.length + 2 > DATA_CODEWORDS_L[version]) version++;
-    if (version > 10) {
-      // fallback: store critical fields only
-      const short = text.split("|").filter(p => /^(CDIR1|IMEI=|ICCID=|MTN=|ASSET=|MODEL=)/.test(p)).join("|");
-      return encode(short.slice(0, 250));
-    }
-
-    const dataCw = DATA_CODEWORDS_L[version];
-    const eccCw = ECC_CODEWORDS_L[version];
-    const bits = [];
-
-    function append(val, len) {
-      for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1);
-    }
-
-    append(0b0100, 4);              // byte mode
-    append(bytes.length, 8);        // byte count, version 1-9/10 ok for our range
-    bytes.forEach(b => append(b, 8));
-    const capBits = dataCw * 8;
-    append(0, Math.min(4, capBits - bits.length));
-    while (bits.length % 8) bits.push(0);
-
-    const data = [];
-    for (let i = 0; i < bits.length; i += 8) {
-      let b = 0;
-      for (let j = 0; j < 8; j++) b = (b << 1) | bits[i+j];
-      data.push(b);
-    }
-    for (let pad = 0; data.length < dataCw; pad ^= 1) data.push(pad ? 0x11 : 0xec);
-
-    const ecc = reedSolomon(data, eccCw);
-    return buildMatrix(version, data.concat(ecc));
-  }
-
-  function reedSolomon(data, degree) {
-    let gen = [1];
-    for (let i = 0; i < degree; i++) gen = polyMul(gen, [1, GF_EXP[i]]);
-    let res = new Array(degree).fill(0);
-    for (const b of data) {
-      const factor = b ^ res.shift();
-      res.push(0);
-      for (let i = 0; i < degree; i++) res[i] ^= gfMul(gen[i+1], factor);
-    }
-    return res;
-  }
-
-  function polyMul(a,b) {
-    const out = new Array(a.length + b.length - 1).fill(0);
-    for (let i=0;i<a.length;i++) for (let j=0;j<b.length;j++) out[i+j] ^= gfMul(a[i], b[j]);
-    return out;
-  }
-
-  function gfMul(a,b) {
-    return a && b ? GF_EXP[GF_LOG[a] + GF_LOG[b]] : 0;
-  }
-
-  function buildMatrix(version, codewords) {
-    const n = version * 4 + 17;
-    const m = Array.from({length:n}, () => Array(n).fill(null));
-    const reserved = Array.from({length:n}, () => Array(n).fill(False));
-
-    function set(x,y,v,r=true){ if (x>=0&&y>=0&&x<n&&y<n){ m[y][x]=v; if(r) reserved[y][x]=true; } }
-    function finder(x,y) {
-      for (let dy=-1;dy<=7;dy++) for (let dx=-1;dx<=7;dx++) {
-        const xx=x+dx, yy=y+dy;
-        if (xx<0||yy<0||xx>=n||yy>=n) continue;
-        const on = dx>=0&&dx<=6&&dy>=0&&dy<=6&&(dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4));
-        set(xx,yy,on);
-      }
-    }
-    finder(0,0); finder(n-7,0); finder(0,n-7);
-
-    for (let i=8;i<n-8;i++) { set(i,6,i%2===0); set(6,i,i%2===0); }
-    set(8,n-8,true);
-
-    // alignment patterns for versions 2-10
-    const align = {
-      2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50]
-    }[version] || [];
-    for (const ay of align) for (const ax of align) {
-      if ((ax===6&&ay===6)||(ax===n-7&&ay===6)||(ax===6&&ay===n-7)) continue;
-      for (let dy=-2;dy<=2;dy++) for (let dx=-2;dx<=2;dx++) {
-        set(ax+dx, ay+dy, Math.max(Math.abs(dx),Math.abs(dy))!==1);
-      }
-    }
-
-    // reserve format areas
-    for (let i=0;i<9;i++) { if (i!==6) { reserved[8][i]=true; reserved[i][8]=true; } }
-    for (let i=0;i<8;i++) { reserved[8][n-1-i]=true; reserved[n-1-i][8]=true; }
-
-    const dataBits = [];
-    codewords.forEach(cw => { for (let i=7;i>=0;i--) dataBits.push((cw>>>i)&1); });
-
-    let bit = 0, dir = -1;
-    for (let x=n-1; x>=1; x-=2) {
-      if (x===6) x--;
-      for (let y0=0; y0<n; y0++) {
-        const y = dir === 1 ? y0 : n-1-y0;
-        for (let dx=0; dx<2; dx++) {
-          const xx=x-dx;
-          if (reserved[y][xx]) continue;
-          let v = bit < dataBits.length ? !!dataBits[bit++] : false;
-          if (((xx + y) & 1) === 0) v = !v; // mask 0
-          m[y][xx] = v;
-        }
-      }
-      dir *= -1;
-    }
-
-    // format bits for ECC L mask 0 = 111011111000100
-    const fmt = "111011111000100".split("").map(c=>c==="1");
-    const coords1 = [[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]];
-    const coords2 = [[n-1,8],[n-2,8],[n-3,8],[n-4,8],[n-5,8],[n-6,8],[n-7,8],[8,n-8],[8,n-7],[8,n-6],[8,n-5],[8,n-4],[8,n-3],[8,n-2],[8,n-1]];
-    coords1.forEach((p,i)=>{ m[p[1]][p[0]]=fmt[i]; });
-    coords2.forEach((p,i)=>{ m[p[1]][p[0]]=fmt[i]; });
-
-    // quiet zone
-    const q = 4, out = Array.from({length:n+q*2},()=>Array(n+q*2).fill(false));
-    for (let y=0;y<n;y++) for (let x=0;x<n;x++) out[y+q][x+q] = !!m[y][x];
-    return out;
-  }
-
-  const False = false;
-  return { encode };
-})();
 
 document.addEventListener("DOMContentLoaded", init);
