@@ -1,4 +1,4 @@
-/* CDIR v13 clean build */
+/* CDIR v14 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -7,7 +7,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 13,
+  version: 14,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -454,7 +454,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 13,
+    version: 14,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
@@ -552,22 +552,22 @@ function printAllQr() {
 
 function printQrRecords(records) {
   previewQrRecords(records);
-  setTimeout(() => window.print(), 150);
+  setTimeout(() => window.print(), 500);
 }
 
 function previewQrRecords(records) {
   $("labelPreview").innerHTML = records.map(qrOnlyLabelHtml).join("");
+  renderRealQrCodes();
 }
 
 function qrOnlyLabelHtml(r) {
   const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
   const bottom = [r.mtn, r.assetTag, shortDate(r.date)].filter(Boolean).join("   ");
   const payload = qrPayload(r);
-  const qrSvg = makeQrSvg(payload);
 
   return `
     <section class="qrOnlyLabel">
-      <div class="qrOnlyBox">${qrSvg}</div>
+      <div class="qrOnlyBox" data-qr="${escAttr(payload)}"></div>
       <div class="qrOnlyText">
         <div class="qrOnlyTitle"><span>QR RECORD</span><span>${esc(group)}</span></div>
         <div class="qrOnlyLine">MODEL: ${esc(r.model || "")}</div>
@@ -582,75 +582,41 @@ function qrOnlyLabelHtml(r) {
 function qrPayload(r) {
   return [
     "CDIR1",
-    `G=${r.deviceGroup || ""}`,
-    `DT=${r.date || ""}`,
-    `V=${r.vendor || ""}`,
-    `MODEL=${r.model || ""}`,
-    `TYPE=${r.typeOfDevice || ""}`,
-    `REASON=${r.reason || ""}`,
-    `USER=${r.userName || ""}`,
-    `DEPT=${r.department || ""}`,
     `IMEI=${r.imei || ""}`,
     `ICCID=${r.iccid || ""}`,
     `MTN=${r.mtn || ""}`,
-    `ASSET=${r.assetTag || ""}`
+    `ASSET=${r.assetTag || ""}`,
+    `MODEL=${r.model || ""}`,
+    `USER=${r.userName || ""}`
   ].join("|");
 }
 
-/*
-  CDIR QR generator v13:
-  This is intentionally a QR-like matrix only for testing print flow if full QR encoding fails.
-  The visible code is deterministic and compact, but it is NOT standards-scannable.
-  It prevents print button failures while we verify the print path.
-  Real standards QR should be added after print flow is confirmed.
-*/
-function makeQrSvg(text) {
-  const size = 33;
-  const border = 2;
-  const total = size + border * 2;
-  const bits = pseudoHashBits(text, size * size);
-  let path = "";
-
-  function addFinder(x0, y0) {
-    for (let y = 0; y < 7; y++) {
-      for (let x = 0; x < 7; x++) {
-        const edge = x === 0 || y === 0 || x === 6 || y === 6;
-        const center = x >= 2 && x <= 4 && y >= 2 && y <= 4;
-        if (edge || center) path += `M${x0 + x + border},${y0 + y + border}h1v1h-1z`;
-      }
-    }
+function renderRealQrCodes() {
+  if (typeof QRCode === "undefined") {
+    alert("QR library did not load. Confirm qrcode.min.js is uploaded with the app files.");
+    return;
   }
 
-  addFinder(0, 0);
-  addFinder(size - 7, 0);
-  addFinder(0, size - 7);
-
-  let i = 0;
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const inFinder = (x < 8 && y < 8) || (x >= size - 8 && y < 8) || (x < 8 && y >= size - 8);
-      if (inFinder) continue;
-      if (bits[i++]) path += `M${x + border},${y + border}h1v1h-1z`;
-    }
-  }
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges"><rect width="${total}" height="${total}" fill="#fff"/><path d="${path}" fill="#000"/></svg>`;
+  document.querySelectorAll(".qrOnlyBox[data-qr]").forEach(box => {
+    const text = box.getAttribute("data-qr") || "";
+    box.innerHTML = "";
+    new QRCode(box, {
+      text: text,
+      width: 260,
+      height: 260,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.L
+    });
+  });
 }
 
-function pseudoHashBits(text, count) {
-  let h = 2166136261;
-  const out = [];
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  for (let i = 0; i < count; i++) {
-    h ^= h << 13;
-    h ^= h >>> 17;
-    h ^= h << 5;
-    out.push((h >>> 0) % 5 < 2);
-  }
-  return out;
+function escAttr(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 
