@@ -10,6 +10,11 @@
   --secondary: #e5e7eb;
   --secondaryText: #111827;
   --danger: #9f1239;
+
+  --label-width: 4in;
+  --label-height: 2.125in;
+  --label-font: 11pt;
+  --label-title: 13pt;
 }
 
 * { box-sizing: border-box; }
@@ -19,6 +24,20 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background: var(--bg);
   color: var(--text);
+}
+
+body.label-standard {
+  --label-width: 3.5in;
+  --label-height: 1.125in;
+  --label-font: 8.5pt;
+  --label-title: 9.5pt;
+}
+
+body.label-large {
+  --label-width: 4in;
+  --label-height: 2.125in;
+  --label-font: 11pt;
+  --label-title: 13pt;
 }
 
 header {
@@ -198,60 +217,48 @@ td button {
   cursor: pointer;
 }
 
-.labelPreviewScreen {
+.labelPreview {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  min-height: 80px;
+  min-height: 90px;
 }
 
-.screenLabel {
-  width: 4in;
-  min-height: 2.125in;
+.deviceLabel {
+  width: var(--label-width);
+  height: var(--label-height);
   background: white;
   border: 1px solid #9ca3af;
   padding: 0.09in 0.12in;
-  font-size: 13pt;
-  line-height: 1.20;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--label-font);
+  line-height: 1.18;
   overflow: hidden;
-}
-
-.screenLabel.small {
-  width: 3.5in;
-  min-height: 1.125in;
-  font-size: 9pt;
+  color: #000;
 }
 
 .labelTitle {
-  font-size: 11pt;
+  font-size: var(--label-title);
   font-weight: 800;
   text-align: center;
   letter-spacing: 0.02in;
-  margin-bottom: 0.03in;
-}
-
-.screenLabel.small .labelTitle {
-  font-size: 10pt;
+  margin-bottom: 0.035in;
 }
 
 .rule {
   border-top: 1px solid #000;
-  margin-bottom: 0.04in;
+  margin-bottom: 0.045in;
 }
 
 .labelLine {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 0.025in;
+  margin-bottom: 0.03in;
 }
 
 .labelLine span {
   font-weight: 800;
-}
-
-#printArea {
-  display: none;
 }
 
 footer {
@@ -269,72 +276,55 @@ footer {
   .scanBox { grid-template-columns: 1fr; }
 }
 
+/* DYMO / browser print */
 @page {
   size: 4in 2.125in;
   margin: 0;
 }
 
-body.print-large {
-  --print-width: 4in;
-  --print-height: 2.125in;
-  --print-font: 11pt;
-  --print-title: 13pt;
-}
-
-body.print-standard {
-  --print-width: 3.5in;
-  --print-height: 1.125in;
-  --print-font: 9pt;
-  --print-title: 10pt;
-}
-
 @media print {
   body {
     background: white;
+    margin: 0;
+    padding: 0;
   }
 
-  #appArea {
+  header,
+  footer,
+  .card:not(.printOnlyCard) {
     display: none !important;
   }
 
-  #printArea {
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .printOnlyCard {
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .printOnlyCard h2,
+  #labelPreview .hint {
+    display: none !important;
+  }
+
+  #labelPreview {
     display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .printLabel {
-    width: var(--print-width);
-    height: var(--print-height);
-    box-sizing: border-box;
-    padding: 0.09in 0.12in;
-    page-break-after: always;
-    overflow: hidden;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: var(--print-font);
-    line-height: 1.20;
-    color: #000;
-  }
-
-  .printLabel .labelTitle {
-    font-size: var(--print-title);
-    font-weight: 800;
-    text-align: center;
-    letter-spacing: 0.02in;
-    margin-bottom: 0.03in;
-  }
-
-  .printLabel .rule {
-    border-top: 1px solid #000;
-    margin-bottom: 0.04in;
-  }
-
-  .printLabel .labelLine {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 0.025in;
-  }
-
-  .printLabel .labelLine span {
-    font-weight: 800;
+  .deviceLabel {
+    width: var(--label-width) !important;
+    height: var(--label-height) !important;
+    border: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
   }
 }

@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cellular Device Intake and Recycle</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
-  <div id="appArea">
+  <div id="app">
     <header>
       <div>
         <h1>Cellular Device Intake and Recycle</h1>
-        <p class="sub">Scan or type device data, save to a project file, export when ready.</p>
+        <p class="sub">CDIR v6 — scan/type device data, save project file, print labels, export spreadsheet.</p>
       </div>
       <div class="status" id="saveStatus">No project file open</div>
     </header>
@@ -26,10 +26,7 @@
           <button id="saveProjectBtn">Save Project</button>
           <button id="downloadJsonBtn" class="secondary">Download JSON Backup</button>
         </div>
-        <p class="hint">
-          Store the project JSON in a local folder, mapped drive, USB drive, or synced SharePoint/OneDrive folder.
-          No SharePoint API or Microsoft Graph API is used.
-        </p>
+        <p class="hint">Project data saves to a selected JSON file. No SharePoint API, Graph API, database, or browser storage.</p>
       </section>
 
       <section class="card">
@@ -131,7 +128,7 @@
                 <th>ICCID</th>
                 <th>MTN</th>
                 <th>Asset Tag</th>
-                <th></th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -140,33 +137,35 @@
       </section>
 
       <section class="card">
-        <h2>4. Print Labels</h2>
+        <h2>4. Labels</h2>
+
         <div class="grid compactGrid">
           <label>Label Title
             <input id="labelTitle" value="CELLULAR DEVICE RECYCLE" />
           </label>
+
           <label>Label Size
             <select id="labelSize">
-              <option value="address-large">2-1/8&quot; x 4&quot; Large Address</option>
-              <option value="address-standard">1-1/8&quot; x 3-1/2&quot; Standard Address</option>
+              <option value="large">2-1/8&quot; x 4&quot; Large Address</option>
+              <option value="standard">1-1/8&quot; x 3-1/2&quot; Standard Address</option>
             </select>
           </label>
         </div>
+
         <div class="buttonRow">
           <button id="previewSelectedBtn">Preview Selected Labels</button>
           <button id="printSelectedBtn">Print Selected Labels</button>
           <button id="printAllBtn" class="secondary">Print All Labels</button>
           <button id="clearPreviewBtn" class="secondary">Clear Preview</button>
         </div>
-        <p class="hint">
-          Print uses the same page to avoid popup blocking. Select DYMO LabelWriter 450 Turbo and the matching label size in printer preferences.
-        </p>
+
+        <p class="hint">The printout uses the exact label preview shown below. Select DYMO LabelWriter 450 Turbo in the browser print dialog.</p>
       </section>
 
-      <section class="card">
-        <h2>5. Label Preview</h2>
-        <div id="labelPreviewScreen" class="labelPreviewScreen">
-          <p class="hint">No label preview yet. Select records and click Preview Selected Labels.</p>
+      <section class="card printOnlyCard">
+        <h2>5. Label Preview / Print Area</h2>
+        <div id="labelPreview" class="labelPreview">
+          <p class="hint">No preview yet. Select records and click Preview Selected Labels.</p>
         </div>
       </section>
 
@@ -177,19 +176,13 @@
           <button id="exportCsvBtn" class="secondary">Export CSV Backup</button>
           <button id="clearAllBtn" class="danger">Clear Loaded Records</button>
         </div>
-        <p class="hint">
-          Excel workbook includes two sheets: E-CYCLE and E-CYCLE - HOT SPOTS.
-        </p>
+        <p class="hint">Excel workbook includes two sheets: E-CYCLE and E-CYCLE - HOT SPOTS.</p>
       </section>
     </main>
 
-    <footer>
-      <span>CDIR v4 — static app, file-based storage, no APIs</span>
-    </footer>
+    <footer>CDIR v6 — static app, no APIs, no service worker cache</footer>
   </div>
 
-  <div id="printArea"></div>
-
-  <script src="app.js"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
