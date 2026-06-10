@@ -1,4 +1,4 @@
-/* Cellular Device Intake and Recycle - CDIR v2
+/* Cellular Device Intake and Recycle - CDIR v3
    Static PWA. No APIs. Project data is saved to a user-selected JSON file.
 */
 
@@ -9,13 +9,14 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 2,
+  version: 3,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
 };
 
 let fileHandle = null;
+let selectedPrintIndexes = new Set();
 
 const $ = id => document.getElementById(id);
 
@@ -95,6 +96,7 @@ async function addRecord() {
   const r = formRecord();
   const warnings = validateRecord(r);
   project.records.push(r);
+  selectedPrintIndexes.add(project.records.length - 1);
   project.updated = new Date().toISOString();
   renderRecords();
   await saveProject(false);
@@ -107,11 +109,16 @@ async function addRecord() {
 function renderRecords() {
   const tbody = $("recordsTable").querySelector("tbody");
   tbody.innerHTML = "";
+
   project.records.forEach((r, i) => {
+    if (!selectedPrintIndexes.has(i) && selectedPrintIndexes.size === 0) {
+      selectedPrintIndexes.add(i);
+    }
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
+      <td><input class="printCheck" type="checkbox" data-print="${i}" ${selectedPrintIndexes.has(i) ? "checked" : ""}></td>
       <td>${i + 1}</td>
-      <td><input class="printCheck" type="checkbox" data-print="${i}" checked></td>
       <td>${esc(r.deviceGroup)}</td>
       <td>${esc(r.date)}</td>
       <td>${esc(r.model)}</td>
@@ -121,7 +128,8 @@ function renderRecords() {
       <td>${esc(r.mtn)}</td>
       <td>${esc(r.assetTag)}</td>
       <td>
-        <button class="secondary" data-label="${i}">Label</button>
+        <button class="secondary" data-preview="${i}">Preview</button>
+        <button class="secondary" data-printone="${i}">Print</button>
         <button class="secondary" data-edit="${i}">Edit</button>
         <button class="danger" data-del="${i}">Delete</button>
       </td>
@@ -129,9 +137,24 @@ function renderRecords() {
     tbody.appendChild(tr);
   });
 
-  tbody.querySelectorAll("button[data-label]").forEach(btn => {
+  tbody.querySelectorAll("input[data-print]").forEach(cb => {
+    cb.addEventListener("change", () => {
+      const idx = Number(cb.dataset.print);
+      if (cb.checked) selectedPrintIndexes.add(idx);
+      else selectedPrintIndexes.delete(idx);
+    });
+  });
+
+  tbody.querySelectorAll("button[data-preview]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const idx = Number(btn.dataset.label);
+      const idx = Number(btn.dataset.preview);
+      previewLabels([project.records[idx]]);
+    });
+  });
+
+  tbody.querySelectorAll("button[data-printone]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.printone);
       printLabels([project.records[idx]]);
     });
   });
@@ -141,6 +164,7 @@ function renderRecords() {
       const idx = Number(btn.dataset.edit);
       loadRecordToForm(project.records[idx]);
       project.records.splice(idx, 1);
+      normalizeSelectedAfterDelete(idx);
       renderRecords();
       saveProject(false);
       $("formMessage").textContent = "Loaded row for editing. Add Device to save it back.";
@@ -152,6 +176,7 @@ function renderRecords() {
       const idx = Number(btn.dataset.del);
       if (confirm("Delete this record?")) {
         project.records.splice(idx, 1);
+        normalizeSelectedAfterDelete(idx);
         project.updated = new Date().toISOString();
         renderRecords();
         await saveProject(false);
@@ -160,6 +185,25 @@ function renderRecords() {
   });
 
   $("counter").textContent = `${project.records.length} record${project.records.length === 1 ? "" : "s"}`;
+}
+
+function normalizeSelectedAfterDelete(deletedIndex) {
+  const next = new Set();
+  selectedPrintIndexes.forEach(i => {
+    if (i < deletedIndex) next.add(i);
+    if (i > deletedIndex) next.add(i - 1);
+  });
+  selectedPrintIndexes = next;
+}
+
+function selectAllLabels() {
+  selectedPrintIndexes = new Set(project.records.map((_, i) => i));
+  renderRecords();
+}
+
+function selectNoLabels() {
+  selectedPrintIndexes = new Set();
+  renderRecords();
 }
 
 function onlyDigits(value) {
@@ -198,14 +242,16 @@ function applyScan() {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 2,
+    version: 3,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
   };
+  selectedPrintIndexes = new Set();
   fileHandle = null;
   renderRecords();
   clearForm();
+  clearPreview();
 
   if (window.showSaveFilePicker) {
     fileHandle = await window.showSaveFilePicker({
@@ -230,7 +276,9 @@ async function openProject() {
     const text = await file.text();
     project = JSON.parse(text);
     if (!Array.isArray(project.records)) project.records = [];
+    selectedPrintIndexes = new Set(project.records.map((_, i) => i));
     renderRecords();
+    clearPreview();
     updateStatus(`Open: ${file.name}`);
   } else {
     const input = document.createElement("input");
@@ -242,7 +290,9 @@ async function openProject() {
       const text = await file.text();
       project = JSON.parse(text);
       if (!Array.isArray(project.records)) project.records = [];
+      selectedPrintIndexes = new Set(project.records.map((_, i) => i));
       renderRecords();
+      clearPreview();
       updateStatus(`Loaded: ${file.name}. Use Download JSON Backup to save changes.`);
     };
     input.click();
@@ -271,6 +321,91 @@ function downloadJson() {
 
 function updateStatus(text) {
   $("saveStatus").textContent = text;
+}
+
+function getSelectedRecords() {
+  return Array.from(selectedPrintIndexes)
+    .sort((a, b) => a - b)
+    .map(i => project.records[i])
+    .filter(Boolean);
+}
+
+function labelIsSmall() {
+  return $("labelSize")?.value === "address-standard";
+}
+
+function labelHtml(record, printClass = "") {
+  const title = $("labelTitle")?.value?.trim() || "CELLULAR DEVICE RECYCLE";
+  return `
+    <section class="${printClass}">
+      <div class="labelTitle">${esc(title)}</div>
+      <div class="rule"></div>
+      ${labelLine("TYPE", record.typeOfDevice || record.deviceGroup)}
+      ${labelLine("MODEL", record.model)}
+      ${labelLine("USER", record.userName)}
+      ${labelLine("DEPT", record.department)}
+      ${labelLine("IMEI", record.imei)}
+      ${labelLine("ICCID", record.iccid)}
+      ${labelLine("MTN", record.mtn)}
+      ${labelLine("ASSET", record.assetTag)}
+      ${labelLine("DATE", record.date)}
+    </section>
+  `;
+}
+
+function labelLine(label, value) {
+  if (!value) return "";
+  return `<div class="labelLine"><span>${esc(label)}:</span> ${esc(value)}</div>`;
+}
+
+function previewSelectedLabels() {
+  const rows = getSelectedRecords();
+  if (!rows.length) {
+    alert("No records selected for label preview.");
+    return;
+  }
+  previewLabels(rows);
+}
+
+function previewLabels(records) {
+  const small = labelIsSmall();
+  $("labelPreviewScreen").innerHTML = records.map(r =>
+    labelHtml(r, `screenLabel${small ? " small" : ""}`)
+  ).join("");
+}
+
+function clearPreview() {
+  $("labelPreviewScreen").innerHTML = '<p class="hint">No label preview yet. Select records and click Preview Selected Labels.</p>';
+  $("printArea").innerHTML = "";
+}
+
+function printSelectedLabels() {
+  const rows = getSelectedRecords();
+  if (!rows.length) {
+    alert("No records selected for label printing.");
+    return;
+  }
+  printLabels(rows);
+}
+
+function printAllLabels() {
+  if (!project.records.length) {
+    alert("No records to print.");
+    return;
+  }
+  printLabels(project.records);
+}
+
+function printLabels(records) {
+  document.body.classList.remove("print-large", "print-standard");
+  document.body.classList.add(labelIsSmall() ? "print-standard" : "print-large");
+
+  $("printArea").innerHTML = records.map(r => labelHtml(r, "printLabel")).join("");
+  previewLabels(records);
+
+  setTimeout(() => {
+    window.print();
+  }, 100);
 }
 
 function exportCsvBackup() {
@@ -329,123 +464,13 @@ function toOriginalRow(r) {
   ];
 }
 
-function selectedLabelRecords() {
-  const checks = document.querySelectorAll("input[data-print]:checked");
-  return Array.from(checks).map(cb => project.records[Number(cb.dataset.print)]).filter(Boolean);
-}
-
-function labelSizeCss() {
-  const size = $("labelSize")?.value || "address-large";
-  if (size === "address-standard") {
-    return { width: "3.5in", height: "1.125in", fontSize: "7.5pt", titleSize: "8.5pt" };
-  }
-  return { width: "4in", height: "2.125in", fontSize: "9pt", titleSize: "11pt" };
-}
-
-function printSelectedLabels() {
-  const rows = selectedLabelRecords();
-  if (!rows.length) {
-    alert("No records selected for label printing.");
-    return;
-  }
-  printLabels(rows);
-}
-
-function printAllLabels() {
-  if (!project.records.length) {
-    alert("No records to print.");
-    return;
-  }
-  printLabels(project.records);
-}
-
-function labelLine(label, value) {
-  if (!value) return "";
-  return `<div class="line"><span>${esc(label)}:</span> ${esc(value)}</div>`;
-}
-
-function printLabels(records) {
-  const title = $("labelTitle")?.value?.trim() || "CELLULAR DEVICE RECYCLE";
-  const size = labelSizeCss();
-
-  const labels = records.map(r => `
-    <section class="label">
-      <div class="labelTitle">${esc(title)}</div>
-      <div class="rule"></div>
-      ${labelLine("TYPE", r.typeOfDevice || r.deviceGroup)}
-      ${labelLine("MODEL", r.model)}
-      ${labelLine("USER", r.userName)}
-      ${labelLine("DEPT", r.department)}
-      ${labelLine("IMEI", r.imei)}
-      ${labelLine("ICCID", r.iccid)}
-      ${labelLine("MTN", r.mtn)}
-      ${labelLine("ASSET", r.assetTag)}
-      ${labelLine("DATE", r.date)}
-    </section>
-  `).join("");
-
-  const html = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>CDIR Labels</title>
-  <style>
-    @page { size: ${size.width} ${size.height}; margin: 0; }
-    html, body { margin: 0; padding: 0; background: white; font-family: Arial, Helvetica, sans-serif; }
-    .label {
-      width: ${size.width};
-      height: ${size.height};
-      box-sizing: border-box;
-      padding: 0.09in 0.12in;
-      page-break-after: always;
-      overflow: hidden;
-      font-size: ${size.fontSize};
-      line-height: 1.16;
-    }
-    .labelTitle {
-      font-size: ${size.titleSize};
-      font-weight: 800;
-      text-align: center;
-      letter-spacing: 0.02in;
-      margin-bottom: 0.03in;
-    }
-    .rule { border-top: 1px solid #000; margin-bottom: 0.04in; }
-    .line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.015in; }
-    .line span { font-weight: 800; }
-    @media screen {
-      body { background: #e5e7eb; padding: 20px; }
-      .label { background: white; margin: 0 auto 12px; box-shadow: 0 0 0 1px #ccc; }
-      .controls { max-width: ${size.width}; margin: 0 auto 14px; display: flex; gap: 10px; }
-      button { padding: 8px 12px; font-weight: 700; }
-    }
-    @media print { .controls { display: none; } }
-  </style>
-</head>
-<body>
-  <div class="controls">
-    <button onclick="window.print()">Print Labels</button>
-    <button onclick="window.close()">Close</button>
-  </div>
-  ${labels}
-</body>
-</html>`;
-
-  const w = window.open("", "_blank");
-  if (!w) {
-    alert("Popup blocked. Allow popups for this app to print labels.");
-    return;
-  }
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-}
-
 function clearAll() {
   if (!confirm("Clear all loaded records from the app? This does not delete your saved JSON unless you save after clearing.")) return;
   project.records = [];
+  selectedPrintIndexes = new Set();
   project.updated = new Date().toISOString();
   renderRecords();
+  clearPreview();
   $("formMessage").textContent = "Loaded records cleared. Save Project to write this change to the JSON file.";
 }
 
@@ -653,8 +678,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   $("addBtn").addEventListener("click", addRecord);
   $("clearBtn").addEventListener("click", clearForm);
+  $("selectAllBtn").addEventListener("click", selectAllLabels);
+  $("selectNoneBtn").addEventListener("click", selectNoLabels);
+  $("previewSelectedBtn").addEventListener("click", previewSelectedLabels);
   $("printSelectedBtn").addEventListener("click", printSelectedLabels);
   $("printAllBtn").addEventListener("click", printAllLabels);
+  $("clearPreviewBtn").addEventListener("click", clearPreview);
   $("exportXlsxBtn").addEventListener("click", exportXlsx);
   $("exportCsvBtn").addEventListener("click", exportCsvBackup);
   $("clearAllBtn").addEventListener("click", clearAll);
