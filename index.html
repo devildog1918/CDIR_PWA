@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cellular Device Intake and Recycle</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=11" />
 </head>
 <body>
   <div id="app">
     <header>
       <div>
         <h1>Cellular Device Intake and Recycle</h1>
-        <p class="sub">CDIR v10 — scan/type device data, save project file, print labels, export spreadsheet.</p>
+        <p class="sub">CDIR v11 — scan/type device data, save project file, print labels, export spreadsheet.</p>
       </div>
       <div class="status" id="saveStatus">No project file open</div>
     </header>
@@ -157,6 +157,10 @@
               <option value="tight">Tight / more data</option>
             </select>
           </label>
+
+          <label class="checkLabel">Include QR Code
+            <input id="includeQr" type="checkbox" />
+          </label>
         </div>
 
         <div class="buttonRow">
@@ -187,9 +191,9 @@
       </section>
     </main>
 
-    <footer>CDIR v10 — static app, no APIs, no service worker cache</footer>
+    <footer>CDIR v11 — static app, no APIs, no service worker cache</footer>
   </div>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
