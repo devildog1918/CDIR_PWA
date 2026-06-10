@@ -8,168 +8,187 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header>
-    <div>
-      <h1>Cellular Device Intake and Recycle</h1>
-      <p class="sub">Scan or type device data, save to a project file, export when ready.</p>
-    </div>
-    <div class="status" id="saveStatus">No project file open</div>
-  </header>
-
-  <main>
-    <section class="card">
-      <h2>1. Project File</h2>
-      <div class="buttonRow">
-        <button id="newProjectBtn">Create New Project</button>
-        <button id="openProjectBtn">Open Project File</button>
-        <button id="saveProjectBtn">Save Project</button>
-        <button id="downloadJsonBtn" class="secondary">Download JSON Backup</button>
+  <div id="appArea">
+    <header>
+      <div>
+        <h1>Cellular Device Intake and Recycle</h1>
+        <p class="sub">Scan or type device data, save to a project file, export when ready.</p>
       </div>
-      <p class="hint">
-        Store the project JSON in a local folder, mapped drive, USB drive, or synced SharePoint/OneDrive folder.
-        No SharePoint API or Microsoft Graph API is used.
-      </p>
-    </section>
+      <div class="status" id="saveStatus">No project file open</div>
+    </header>
 
-    <section class="card">
-      <h2>2. Capture Device</h2>
+    <main>
+      <section class="card">
+        <h2>1. Project File</h2>
+        <div class="buttonRow">
+          <button id="newProjectBtn">Create New Project</button>
+          <button id="openProjectBtn">Open Project File</button>
+          <button id="saveProjectBtn">Save Project</button>
+          <button id="downloadJsonBtn" class="secondary">Download JSON Backup</button>
+        </div>
+        <p class="hint">
+          Store the project JSON in a local folder, mapped drive, USB drive, or synced SharePoint/OneDrive folder.
+          No SharePoint API or Microsoft Graph API is used.
+        </p>
+      </section>
 
-      <div class="grid">
-        <label>Device Group
-          <select id="deviceGroup">
-            <option value="Phone">Phone</option>
-            <option value="Hot Spot">Hot Spot</option>
-          </select>
-        </label>
+      <section class="card">
+        <h2>2. Capture Device</h2>
 
-        <label>Date
-          <input id="date" type="date" />
-        </label>
+        <div class="grid">
+          <label>Device Group
+            <select id="deviceGroup">
+              <option value="Phone">Phone</option>
+              <option value="Hot Spot">Hot Spot</option>
+            </select>
+          </label>
 
-        <label>Vendor
-          <input id="vendor" value="e-Cycle" />
-        </label>
+          <label>Date
+            <input id="date" type="date" />
+          </label>
 
-        <label>Qty
-          <input id="qty" type="number" value="1" min="1" />
-        </label>
+          <label>Vendor
+            <input id="vendor" value="e-Cycle" />
+          </label>
 
-        <label>Model
-          <input id="model" placeholder="Example: IPHONE SE 22 64 MIDNIGHT SO" />
-        </label>
+          <label>Qty
+            <input id="qty" type="number" value="1" min="1" />
+          </label>
 
-        <label>Type of Device
-          <input id="typeOfDevice" value="Cell Phone" />
-        </label>
+          <label>Model
+            <input id="model" placeholder="Example: IPHONE SE 22 64 MIDNIGHT SO" />
+          </label>
 
-        <label>Reason
-          <input id="reason" value="Recycle" />
-        </label>
+          <label>Type of Device
+            <input id="typeOfDevice" value="Cell Phone" />
+          </label>
 
-        <label>User Name
-          <input id="userName" placeholder="User name from label" />
-        </label>
+          <label>Reason
+            <input id="reason" value="Recycle" />
+          </label>
 
-        <label>Department
-          <input id="department" placeholder="Department" />
-        </label>
+          <label>User Name
+            <input id="userName" placeholder="User name from label" />
+          </label>
 
-        <label>IMEI
-          <input id="imei" inputmode="numeric" placeholder="15 digits" />
-        </label>
+          <label>Department
+            <input id="department" placeholder="Department" />
+          </label>
 
-        <label>ICCID / SIMID
-          <input id="iccid" inputmode="numeric" placeholder="Starts with 89" />
-        </label>
+          <label>IMEI
+            <input id="imei" inputmode="numeric" placeholder="15 digits" />
+          </label>
 
-        <label>MTN
-          <input id="mtn" inputmode="numeric" placeholder="10 digits or ###-###-####" />
-        </label>
+          <label>ICCID / SIMID
+            <input id="iccid" inputmode="numeric" placeholder="Starts with 89" />
+          </label>
 
-        <label>Asset Tag / T#
-          <input id="assetTag" placeholder="Example: T50265868" />
-        </label>
-      </div>
+          <label>MTN
+            <input id="mtn" inputmode="numeric" placeholder="10 digits or ###-###-####" />
+          </label>
 
-      <div class="scanBox">
-        <label>Quick Scan / Paste
-          <input id="quickScan" autocomplete="off" placeholder="Scan barcode here; Enter auto-detects IMEI, ICCID, MTN, or T#" />
-        </label>
-        <button id="applyScanBtn" class="secondary">Apply Scan</button>
-      </div>
+          <label>Asset Tag / T#
+            <input id="assetTag" placeholder="Example: T50265868" />
+          </label>
+        </div>
 
-      <div class="buttonRow">
-        <button id="addBtn">Add Device</button>
-        <button id="clearBtn" class="secondary">Clear Form</button>
-      </div>
-      <p id="formMessage" class="message"></p>
-    </section>
+        <div class="scanBox">
+          <label>Quick Scan / Paste
+            <input id="quickScan" autocomplete="off" placeholder="Scan barcode here; Enter auto-detects IMEI, ICCID, MTN, or T#" />
+          </label>
+          <button id="applyScanBtn" class="secondary">Apply Scan</button>
+        </div>
 
-    <section class="card">
-      <div class="sectionHeader">
-        <h2>3. Review Records</h2>
-        <div class="counter" id="counter">0 records</div>
-      </div>
-      <div class="tableWrap">
-        <table id="recordsTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Print</th>
-              <th>Group</th>
-              <th>Date</th>
-              <th>Model</th>
-              <th>User</th>
-              <th>IMEI</th>
-              <th>ICCID</th>
-              <th>MTN</th>
-              <th>Asset Tag</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+        <div class="buttonRow">
+          <button id="addBtn">Add Device</button>
+          <button id="clearBtn" class="secondary">Clear Form</button>
+        </div>
+        <p id="formMessage" class="message"></p>
+      </section>
 
-    <section class="card">
-      <h2>4. Print Labels</h2>
-      <div class="grid compactGrid">
-        <label>Label Title
-          <input id="labelTitle" value="CELLULAR DEVICE RECYCLE" />
-        </label>
-        <label>Label Size
-          <select id="labelSize">
-            <option value="address-large">2-1/8&quot; x 4&quot; Large Address</option>
-            <option value="address-standard">1-1/8&quot; x 3-1/2&quot; Standard Address</option>
-          </select>
-        </label>
-      </div>
-      <div class="buttonRow">
-        <button id="printSelectedBtn">Print Selected Labels</button>
-        <button id="printAllBtn" class="secondary">Print All Labels</button>
-      </div>
-      <p class="hint">
-        Opens a browser print page. Select DYMO LabelWriter 450 Turbo and the matching label size in printer preferences.
-      </p>
-    </section>
+      <section class="card">
+        <div class="sectionHeader">
+          <h2>3. Review Records</h2>
+          <div class="counter" id="counter">0 records</div>
+        </div>
 
-    <section class="card">
-      <h2>5. Export</h2>
-      <div class="buttonRow">
-        <button id="exportXlsxBtn">Export Excel Workbook</button>
-        <button id="exportCsvBtn" class="secondary">Export CSV Backup</button>
-        <button id="clearAllBtn" class="danger">Clear Loaded Records</button>
-      </div>
-      <p class="hint">
-        Excel workbook includes two sheets: E-CYCLE and E-CYCLE - HOT SPOTS.
-      </p>
-    </section>
-  </main>
+        <div class="buttonRow topControls">
+          <button id="selectAllBtn" class="secondary">Select All Labels</button>
+          <button id="selectNoneBtn" class="secondary">Select None</button>
+        </div>
 
-  <footer>
-    <span>CDIR v2 — static app, file-based storage, no APIs</span>
-  </footer>
+        <div class="tableWrap">
+          <table id="recordsTable">
+            <thead>
+              <tr>
+                <th>Print</th>
+                <th>#</th>
+                <th>Group</th>
+                <th>Date</th>
+                <th>Model</th>
+                <th>User</th>
+                <th>IMEI</th>
+                <th>ICCID</th>
+                <th>MTN</th>
+                <th>Asset Tag</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4. Print Labels</h2>
+        <div class="grid compactGrid">
+          <label>Label Title
+            <input id="labelTitle" value="CELLULAR DEVICE RECYCLE" />
+          </label>
+          <label>Label Size
+            <select id="labelSize">
+              <option value="address-large">2-1/8&quot; x 4&quot; Large Address</option>
+              <option value="address-standard">1-1/8&quot; x 3-1/2&quot; Standard Address</option>
+            </select>
+          </label>
+        </div>
+        <div class="buttonRow">
+          <button id="previewSelectedBtn">Preview Selected Labels</button>
+          <button id="printSelectedBtn">Print Selected Labels</button>
+          <button id="printAllBtn" class="secondary">Print All Labels</button>
+          <button id="clearPreviewBtn" class="secondary">Clear Preview</button>
+        </div>
+        <p class="hint">
+          Print uses the same page to avoid popup blocking. Select DYMO LabelWriter 450 Turbo and the matching label size in printer preferences.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>5. Label Preview</h2>
+        <div id="labelPreviewScreen" class="labelPreviewScreen">
+          <p class="hint">No label preview yet. Select records and click Preview Selected Labels.</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>6. Export</h2>
+        <div class="buttonRow">
+          <button id="exportXlsxBtn">Export Excel Workbook</button>
+          <button id="exportCsvBtn" class="secondary">Export CSV Backup</button>
+          <button id="clearAllBtn" class="danger">Clear Loaded Records</button>
+        </div>
+        <p class="hint">
+          Excel workbook includes two sheets: E-CYCLE and E-CYCLE - HOT SPOTS.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <span>CDIR v3 — static app, file-based storage, no APIs</span>
+    </footer>
+  </div>
+
+  <div id="printArea"></div>
 
   <script src="app.js"></script>
 </body>
