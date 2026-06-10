@@ -1,4 +1,4 @@
-# Cellular Device Intake and Recycle — CDIR v6
+# Cellular Device Intake and Recycle — CDIR v7
 
 ## Purpose
 Static app for scanning or typing cellular device data, saving it to a project JSON file, printing labels, and exporting a final Excel workbook.
@@ -37,3 +37,18 @@ Use browser print dialog and select:
 - DYMO LabelWriter 450 Turbo
 - 2-1/8" x 4" Large Address, or
 - 1-1/8" x 3-1/2" Standard Address
+
+
+## v7 label update
+- Rebuilt label layout for maximum font size and space usage.
+- Reduced padding.
+- Removed divider rule.
+- Replaced large title block with compact two-sided header.
+- Uses:
+  - RECYCLE / TYPE
+  - MODEL
+  - USER/DEPT
+  - IMEI
+  - ICCID
+  - MTN / ASSET
+  - DATE

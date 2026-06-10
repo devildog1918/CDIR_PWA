@@ -13,8 +13,9 @@
 
   --label-width: 4in;
   --label-height: 2.125in;
-  --label-font: 11pt;
+  --label-font: 14pt;
   --label-title: 13pt;
+  --label-small: 11pt;
 }
 
 * { box-sizing: border-box; }
@@ -36,8 +37,9 @@ body.label-standard {
 body.label-large {
   --label-width: 4in;
   --label-height: 2.125in;
-  --label-font: 11pt;
+  --label-font: 14pt;
   --label-title: 13pt;
+  --label-small: 11pt;
 }
 
 header {
@@ -229,36 +231,51 @@ td button {
   height: var(--label-height);
   background: white;
   border: 1px solid #9ca3af;
-  padding: 0.09in 0.12in;
+  padding: 0.035in 0.055in;
   font-family: Arial, Helvetica, sans-serif;
   font-size: var(--label-font);
-  line-height: 1.18;
+  line-height: 1.03;
   overflow: hidden;
   color: #000;
 }
 
-.labelTitle {
+.labelHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
   font-size: var(--label-title);
-  font-weight: 800;
-  text-align: center;
-  letter-spacing: 0.02in;
-  margin-bottom: 0.035in;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 0.025in;
+  text-transform: uppercase;
 }
 
-.rule {
-  border-top: 1px solid #000;
-  margin-bottom: 0.045in;
+.labelHeader .right {
+  text-align: right;
 }
 
 .labelLine {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 0.03in;
+  margin-bottom: 0.022in;
+  font-weight: 700;
 }
 
 .labelLine span {
-  font-weight: 800;
+  font-weight: 900;
+}
+
+.labelLine.smallLine {
+  font-size: var(--label-small);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.06in;
+}
+
+.labelLine.dateLine {
+  font-size: var(--label-small);
+  margin-bottom: 0;
 }
 
 footer {
@@ -326,5 +343,8 @@ footer {
     margin: 0 !important;
     box-shadow: none !important;
     page-break-after: always !important;
+    padding: 0.035in 0.055in !important;
+    font-size: var(--label-font) !important;
+    line-height: 1.03 !important;
   }
 }

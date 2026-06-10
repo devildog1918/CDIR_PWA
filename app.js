@@ -7,7 +7,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 6,
+  version: 7,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -266,21 +266,24 @@ function clearPreview() {
 }
 
 function labelHtml(r) {
-  const title = $("labelTitle").value.trim() || "CELLULAR DEVICE RECYCLE";
-  const typeModel = combine(r.typeOfDevice || r.deviceGroup, r.model);
+  const title = $("labelTitle").value.trim() || "RECYCLE";
+  const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
   const userDept = combine(r.userName, r.department);
-  const mtnAsset = combine(r.mtn, r.assetTag);
+  const mtn = r.mtn ? `<div><span>MTN:</span> ${esc(r.mtn)}</div>` : "";
+  const asset = r.assetTag ? `<div><span>ASSET:</span> ${esc(r.assetTag)}</div>` : "";
 
   return `
     <section class="deviceLabel">
-      <div class="labelTitle">${esc(title)}</div>
-      <div class="rule"></div>
-      ${line("TYPE / MODEL", typeModel)}
-      ${line("USER / DEPT", userDept)}
+      <div class="labelHeader">
+        <div>${esc(title)}</div>
+        <div class="right">${esc(group)}</div>
+      </div>
+      ${line("MODEL", r.model)}
+      ${line("USER/DEPT", userDept)}
       ${line("IMEI", r.imei)}
       ${line("ICCID", r.iccid)}
-      ${line("MTN / ASSET", mtnAsset)}
-      ${line("DATE", r.date)}
+      <div class="labelLine smallLine">${mtn}${asset}</div>
+      ${r.date ? `<div class="labelLine dateLine"><span>DATE:</span> ${esc(r.date)}</div>` : ""}
     </section>
   `;
 }
@@ -361,7 +364,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 6,
+    version: 7,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
