@@ -115,6 +115,7 @@
           <thead>
             <tr>
               <th>#</th>
+              <th>Print</th>
               <th>Group</th>
               <th>Date</th>
               <th>Model</th>
@@ -132,7 +133,29 @@
     </section>
 
     <section class="card">
-      <h2>4. Export</h2>
+      <h2>4. Print Labels</h2>
+      <div class="grid compactGrid">
+        <label>Label Title
+          <input id="labelTitle" value="CELLULAR DEVICE RECYCLE" />
+        </label>
+        <label>Label Size
+          <select id="labelSize">
+            <option value="address-large">2-1/8&quot; x 4&quot; Large Address</option>
+            <option value="address-standard">1-1/8&quot; x 3-1/2&quot; Standard Address</option>
+          </select>
+        </label>
+      </div>
+      <div class="buttonRow">
+        <button id="printSelectedBtn">Print Selected Labels</button>
+        <button id="printAllBtn" class="secondary">Print All Labels</button>
+      </div>
+      <p class="hint">
+        Opens a browser print page. Select DYMO LabelWriter 450 Turbo and the matching label size in printer preferences.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>5. Export</h2>
       <div class="buttonRow">
         <button id="exportXlsxBtn">Export Excel Workbook</button>
         <button id="exportCsvBtn" class="secondary">Export CSV Backup</button>
@@ -145,7 +168,7 @@
   </main>
 
   <footer>
-    <span>CDIR v1 — static app, file-based storage, no APIs</span>
+    <span>CDIR v2 — static app, file-based storage, no APIs</span>
   </footer>
 
   <script src="app.js"></script>
