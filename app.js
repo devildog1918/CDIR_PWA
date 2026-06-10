@@ -1,4 +1,4 @@
-/* Cellular Device Intake and Recycle - CDIR v1
+/* Cellular Device Intake and Recycle - CDIR v2
    Static PWA. No APIs. Project data is saved to a user-selected JSON file.
 */
 
@@ -9,7 +9,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 1,
+  version: 2,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -111,6 +111,7 @@ function renderRecords() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${i + 1}</td>
+      <td><input class="printCheck" type="checkbox" data-print="${i}" checked></td>
       <td>${esc(r.deviceGroup)}</td>
       <td>${esc(r.date)}</td>
       <td>${esc(r.model)}</td>
@@ -120,11 +121,19 @@ function renderRecords() {
       <td>${esc(r.mtn)}</td>
       <td>${esc(r.assetTag)}</td>
       <td>
+        <button class="secondary" data-label="${i}">Label</button>
         <button class="secondary" data-edit="${i}">Edit</button>
         <button class="danger" data-del="${i}">Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll("button[data-label]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.label);
+      printLabels([project.records[idx]]);
+    });
   });
 
   tbody.querySelectorAll("button[data-edit]").forEach(btn => {
@@ -189,7 +198,7 @@ function applyScan() {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 1,
+    version: 2,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
@@ -282,10 +291,6 @@ function csvCell(value) {
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-/* Minimal XLSX builder:
-   Creates a valid .xlsx zip using uncompressed ZIP entries and simple sheet XML.
-   No external API, no CDN, no library dependency.
-*/
 function exportXlsx() {
   const phoneRows = project.records
     .filter(r => (r.deviceGroup || "").toLowerCase() !== "hot spot")
@@ -322,6 +327,126 @@ function toOriginalRow(r) {
     r.imei || "",
     r.iccid || ""
   ];
+}
+
+function selectedLabelRecords() {
+  const checks = document.querySelectorAll("input[data-print]:checked");
+  return Array.from(checks).map(cb => project.records[Number(cb.dataset.print)]).filter(Boolean);
+}
+
+function labelSizeCss() {
+  const size = $("labelSize")?.value || "address-large";
+  if (size === "address-standard") {
+    return { width: "3.5in", height: "1.125in", fontSize: "7.5pt", titleSize: "8.5pt" };
+  }
+  return { width: "4in", height: "2.125in", fontSize: "9pt", titleSize: "11pt" };
+}
+
+function printSelectedLabels() {
+  const rows = selectedLabelRecords();
+  if (!rows.length) {
+    alert("No records selected for label printing.");
+    return;
+  }
+  printLabels(rows);
+}
+
+function printAllLabels() {
+  if (!project.records.length) {
+    alert("No records to print.");
+    return;
+  }
+  printLabels(project.records);
+}
+
+function labelLine(label, value) {
+  if (!value) return "";
+  return `<div class="line"><span>${esc(label)}:</span> ${esc(value)}</div>`;
+}
+
+function printLabels(records) {
+  const title = $("labelTitle")?.value?.trim() || "CELLULAR DEVICE RECYCLE";
+  const size = labelSizeCss();
+
+  const labels = records.map(r => `
+    <section class="label">
+      <div class="labelTitle">${esc(title)}</div>
+      <div class="rule"></div>
+      ${labelLine("TYPE", r.typeOfDevice || r.deviceGroup)}
+      ${labelLine("MODEL", r.model)}
+      ${labelLine("USER", r.userName)}
+      ${labelLine("DEPT", r.department)}
+      ${labelLine("IMEI", r.imei)}
+      ${labelLine("ICCID", r.iccid)}
+      ${labelLine("MTN", r.mtn)}
+      ${labelLine("ASSET", r.assetTag)}
+      ${labelLine("DATE", r.date)}
+    </section>
+  `).join("");
+
+  const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CDIR Labels</title>
+  <style>
+    @page { size: ${size.width} ${size.height}; margin: 0; }
+    html, body { margin: 0; padding: 0; background: white; font-family: Arial, Helvetica, sans-serif; }
+    .label {
+      width: ${size.width};
+      height: ${size.height};
+      box-sizing: border-box;
+      padding: 0.09in 0.12in;
+      page-break-after: always;
+      overflow: hidden;
+      font-size: ${size.fontSize};
+      line-height: 1.16;
+    }
+    .labelTitle {
+      font-size: ${size.titleSize};
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 0.02in;
+      margin-bottom: 0.03in;
+    }
+    .rule { border-top: 1px solid #000; margin-bottom: 0.04in; }
+    .line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.015in; }
+    .line span { font-weight: 800; }
+    @media screen {
+      body { background: #e5e7eb; padding: 20px; }
+      .label { background: white; margin: 0 auto 12px; box-shadow: 0 0 0 1px #ccc; }
+      .controls { max-width: ${size.width}; margin: 0 auto 14px; display: flex; gap: 10px; }
+      button { padding: 8px 12px; font-weight: 700; }
+    }
+    @media print { .controls { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button onclick="window.print()">Print Labels</button>
+    <button onclick="window.close()">Close</button>
+  </div>
+  ${labels}
+</body>
+</html>`;
+
+  const w = window.open("", "_blank");
+  if (!w) {
+    alert("Popup blocked. Allow popups for this app to print labels.");
+    return;
+  }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+}
+
+function clearAll() {
+  if (!confirm("Clear all loaded records from the app? This does not delete your saved JSON unless you save after clearing.")) return;
+  project.records = [];
+  project.updated = new Date().toISOString();
+  renderRecords();
+  $("formMessage").textContent = "Loaded records cleared. Save Project to write this change to the JSON file.";
 }
 
 function contentTypesXml() {
@@ -366,20 +491,11 @@ function workbookRelsXml() {
 function stylesXml() {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <fonts count="2">
-    <font><sz val="11"/><name val="Calibri"/></font>
-    <font><b/><sz val="11"/><name val="Calibri"/></font>
-  </fonts>
-  <fills count="2">
-    <fill><patternFill patternType="none"/></fill>
-    <fill><patternFill patternType="gray125"/></fill>
-  </fills>
+  <fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>
+  <fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>
   <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
   <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-  <cellXfs count="2">
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-    <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/>
-  </cellXfs>
+  <cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/></cellXfs>
   <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
 </styleSheet>`;
 }
@@ -402,9 +518,7 @@ function sheetXml(name, headers, rows) {
 
 function cellXml(row, col, value, header=false) {
   const ref = colName(col) + row;
-  if (typeof value === "number") {
-    return `<c r="${ref}"${header ? ' s="1"' : ""}><v>${value}</v></c>`;
-  }
+  if (typeof value === "number") return `<c r="${ref}"${header ? ' s="1"' : ""}><v>${value}</v></c>`;
   return `<c r="${ref}" t="inlineStr"${header ? ' s="1"' : ""}><is><t>${xmlEsc(String(value ?? ""))}</t></is></c>`;
 }
 
@@ -440,7 +554,6 @@ function downloadBlob(blob, filename) {
   }, 500);
 }
 
-/* ZIP store implementation */
 function zipStore(fileMap) {
   const enc = new TextEncoder();
   const localParts = [];
@@ -465,7 +578,6 @@ function zipStore(fileMap) {
       u32(0), u32(offset), nameBytes
     ]);
     centralParts.push(central);
-
     offset += local.length;
   }
 
@@ -522,14 +634,6 @@ function crc32(data) {
   return (c ^ 0xffffffff) >>> 0;
 }
 
-function clearAll() {
-  if (!confirm("Clear all loaded records from the app? This does not delete your saved JSON unless you save after clearing.")) return;
-  project.records = [];
-  project.updated = new Date().toISOString();
-  renderRecords();
-  $("formMessage").textContent = "Loaded records cleared. Save Project to write this change to the JSON file.";
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   $("date").value = todayISO();
   setDefaultsForGroup();
@@ -549,6 +653,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   $("addBtn").addEventListener("click", addRecord);
   $("clearBtn").addEventListener("click", clearForm);
+  $("printSelectedBtn").addEventListener("click", printSelectedLabels);
+  $("printAllBtn").addEventListener("click", printAllLabels);
   $("exportXlsxBtn").addEventListener("click", exportXlsx);
   $("exportCsvBtn").addEventListener("click", exportCsvBackup);
   $("clearAllBtn").addEventListener("click", clearAll);
