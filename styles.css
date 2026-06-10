@@ -348,3 +348,111 @@ footer {
     line-height: 1.03 !important;
   }
 }
+
+
+/* CDIR v8 label autofit overrides */
+:root {
+  --label-width: 4in;
+  --label-height: 2.125in;
+}
+
+body.label-standard {
+  --label-width: 3.5in;
+  --label-height: 1.125in;
+}
+
+body.label-large {
+  --label-width: 4in;
+  --label-height: 2.125in;
+}
+
+.labelPreview {
+  align-items: flex-start;
+}
+
+.deviceLabel {
+  width: var(--label-width) !important;
+  height: var(--label-height) !important;
+  background: white !important;
+  border: 1px solid #9ca3af !important;
+  padding: 0.025in 0.04in !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  overflow: hidden !important;
+  color: #000 !important;
+  display: grid !important;
+  grid-template-rows: auto 1fr auto !important;
+  gap: 0.012in !important;
+}
+
+.labelTop {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.05in;
+  align-items: baseline;
+  line-height: 0.96;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.labelTitleMain {
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.labelType {
+  font-weight: 900;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.labelBody {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: repeat(4, auto);
+  align-content: space-evenly;
+}
+
+.labelRow {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.00;
+  font-weight: 800;
+}
+
+.labelRow span {
+  font-weight: 950;
+}
+
+.labelBottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.05in;
+  align-items: baseline;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 0.98;
+  font-weight: 800;
+}
+
+.labelBottom div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.labelBottom span {
+  font-weight: 950;
+}
+
+@media print {
+  .deviceLabel {
+    border: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+  }
+}

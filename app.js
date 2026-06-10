@@ -1,4 +1,4 @@
-/* CDIR v6 clean build */
+/* CDIR v8 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -7,7 +7,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 7,
+  version: 8,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -30,6 +30,7 @@ function init() {
 
   $("deviceGroup").addEventListener("change", setDefaultsForGroup);
   $("labelSize").addEventListener("change", applyLabelSize);
+  $("labelDensity").addEventListener("change", () => previewRecords(getCurrentPreviewRecords()));
 
   $("newProjectBtn").addEventListener("click", createProject);
   $("openProjectBtn").addEventListener("click", openProject);
@@ -225,6 +226,12 @@ function getSelectedRecords() {
   return [...selected].sort((a,b) => a-b).map(i => project.records[i]).filter(Boolean);
 }
 
+function getCurrentPreviewRecords() {
+  const labels = Array.from(document.querySelectorAll("#labelPreview .deviceLabel"));
+  if (!labels.length) return [];
+  return getSelectedRecords();
+}
+
 function previewSelected() {
   const rows = getSelectedRecords();
   if (!rows.length) {
@@ -254,11 +261,70 @@ function printAll() {
 function previewRecords(records) {
   applyLabelSize();
   $("labelPreview").innerHTML = records.map(labelHtml).join("");
+  requestAnimationFrame(() => autofitLabels());
 }
 
 function printRecords(records) {
   previewRecords(records);
-  setTimeout(() => window.print(), 100);
+  setTimeout(() => {
+    autofitLabels();
+    window.print();
+  }, 250);
+}
+
+
+function autofitLabels() {
+  const density = $("labelDensity")?.value || "max";
+  const labels = Array.from(document.querySelectorAll("#labelPreview .deviceLabel"));
+
+  labels.forEach(label => {
+    const top = label.querySelector(".labelTop");
+    const body = label.querySelector(".labelBody");
+    const rows = Array.from(label.querySelectorAll(".labelRow"));
+    const bottom = label.querySelector(".labelBottom");
+
+    // Start aggressively large. Then shrink until everything fits.
+    let bodySize = density === "tight" ? 19 : 22;
+    let topSize = density === "tight" ? 16 : 18;
+    let bottomSize = density === "tight" ? 13 : 15;
+
+    const minBody = density === "tight" ? 8 : 10;
+    const minTop = density === "tight" ? 8 : 9;
+    const minBottom = density === "tight" ? 7 : 8;
+
+    function applySizes() {
+      top.style.fontSize = topSize + "pt";
+      rows.forEach(row => row.style.fontSize = bodySize + "pt");
+      bottom.style.fontSize = bottomSize + "pt";
+    }
+
+    applySizes();
+
+    let guard = 0;
+    while (guard < 80 && labelOverflows(label)) {
+      if (bodySize > minBody) bodySize -= 0.5;
+      if (topSize > minTop && guard % 2 === 0) topSize -= 0.5;
+      if (bottomSize > minBottom && guard % 2 === 0) bottomSize -= 0.5;
+      applySizes();
+      guard++;
+    }
+  });
+}
+
+function labelOverflows(el) {
+  const fudge = 1;
+  if (el.scrollHeight > el.clientHeight + fudge) return true;
+  if (el.scrollWidth > el.clientWidth + fudge) return true;
+
+  const children = el.querySelectorAll("*");
+  for (const child of children) {
+    if (child.scrollWidth > child.clientWidth + fudge) {
+      // Single long values are allowed to ellipsis horizontally.
+      continue;
+    }
+    if (child.scrollHeight > child.clientHeight + fudge) return true;
+  }
+  return false;
 }
 
 function clearPreview() {
@@ -266,27 +332,47 @@ function clearPreview() {
 }
 
 function labelHtml(r) {
-  const title = $("labelTitle").value.trim() || "RECYCLE";
+  const title = ($("labelTitle").value.trim() || "RECYCLE").toUpperCase();
   const group = (r.typeOfDevice || r.deviceGroup || "").toUpperCase();
+  const model = r.model || "";
   const userDept = combine(r.userName, r.department);
-  const mtn = r.mtn ? `<div><span>MTN:</span> ${esc(r.mtn)}</div>` : "";
-  const asset = r.assetTag ? `<div><span>ASSET:</span> ${esc(r.assetTag)}</div>` : "";
+  const mtnAsset = combineLabel("MTN", r.mtn, "ASSET", r.assetTag);
 
   return `
-    <section class="deviceLabel">
-      <div class="labelHeader">
-        <div>${esc(title)}</div>
-        <div class="right">${esc(group)}</div>
+    <section class="deviceLabel" data-autofit="1">
+      <div class="labelTop">
+        <div class="labelTitleMain">${esc(title)}</div>
+        <div class="labelType">${esc(group)}</div>
       </div>
-      ${line("MODEL", r.model)}
-      ${line("USER/DEPT", userDept)}
-      ${line("IMEI", r.imei)}
-      ${line("ICCID", r.iccid)}
-      <div class="labelLine smallLine">${mtn}${asset}</div>
-      ${r.date ? `<div class="labelLine dateLine"><span>DATE:</span> ${esc(r.date)}</div>` : ""}
+
+      <div class="labelBody">
+        ${labelRow("MODEL", model)}
+        ${labelRow("USER/DEPT", userDept)}
+        ${labelRow("IMEI", r.imei)}
+        ${labelRow("ICCID", r.iccid)}
+      </div>
+
+      <div class="labelBottom">
+        <div>${mtnAsset}</div>
+        <div>${r.date ? `<span>DATE:</span> ${esc(r.date)}` : ""}</div>
+        <div>${r.qty ? `<span>QTY:</span> ${esc(r.qty)}` : ""}</div>
+      </div>
     </section>
   `;
 }
+
+function labelRow(label, value) {
+  if (!value) return `<div class="labelRow"><span>${esc(label)}:</span></div>`;
+  return `<div class="labelRow"><span>${esc(label)}:</span> ${esc(value)}</div>`;
+}
+
+function combineLabel(labelA, valueA, labelB, valueB) {
+  const a = valueA ? `<span>${esc(labelA)}:</span> ${esc(valueA)}` : "";
+  const b = valueB ? `<span>${esc(labelB)}:</span> ${esc(valueB)}` : "";
+  if (a && b) return `${a} &nbsp; ${b}`;
+  return a || b || "";
+}
+
 
 function line(label, value) {
   if (!value) return "";
@@ -364,7 +450,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 7,
+    version: 8,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
