@@ -1,4 +1,4 @@
-/* Cellular Device Intake and Recycle - CDIR v3
+/* Cellular Device Intake and Recycle - CDIR v4
    Static PWA. No APIs. Project data is saved to a user-selected JSON file.
 */
 
@@ -9,7 +9,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 3,
+  version: 4,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -242,7 +242,7 @@ function applyScan() {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 3,
+    version: 4,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: []
@@ -334,20 +334,28 @@ function labelIsSmall() {
   return $("labelSize")?.value === "address-standard";
 }
 
+
+function combineValues(left, right, sep = " — ") {
+  const a = String(left || "").trim();
+  const b = String(right || "").trim();
+  if (a && b) return `${a}${sep}${b}`;
+  return a || b;
+}
+
 function labelHtml(record, printClass = "") {
   const title = $("labelTitle")?.value?.trim() || "CELLULAR DEVICE RECYCLE";
+  const typeModel = combineValues(record.typeOfDevice || record.deviceGroup, record.model);
+  const userDept = combineValues(record.userName, record.department);
+  const mtnAsset = combineValues(record.mtn, record.assetTag);
   return `
     <section class="${printClass}">
       <div class="labelTitle">${esc(title)}</div>
       <div class="rule"></div>
-      ${labelLine("TYPE", record.typeOfDevice || record.deviceGroup)}
-      ${labelLine("MODEL", record.model)}
-      ${labelLine("USER", record.userName)}
-      ${labelLine("DEPT", record.department)}
+      ${labelLine("TYPE / MODEL", typeModel)}
+      ${labelLine("USER / DEPT", userDept)}
       ${labelLine("IMEI", record.imei)}
       ${labelLine("ICCID", record.iccid)}
-      ${labelLine("MTN", record.mtn)}
-      ${labelLine("ASSET", record.assetTag)}
+      ${labelLine("MTN / ASSET", mtnAsset)}
       ${labelLine("DATE", record.date)}
     </section>
   `;

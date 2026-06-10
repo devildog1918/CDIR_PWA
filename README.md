@@ -1,4 +1,4 @@
-# Cellular Device Intake and Recycle — CDIR v3
+# Cellular Device Intake and Recycle — CDIR v4
 
 ## Purpose
 Static PWA for scanning or typing cellular device data, saving it to a project JSON file, printing device labels, and exporting a final Excel workbook.
@@ -34,3 +34,11 @@ This version does not use:
 ## Browser note
 The direct file save workflow uses the File System Access API. It works best in Chrome or Edge.
 If unavailable, use the JSON download/upload fallback.
+
+
+## v4 label layout change
+- Combines `TYPE / MODEL` onto one line.
+- Combines `USER / DEPT` onto one line.
+- Keeps `IMEI` and `ICCID` on separate lines.
+- Combines `MTN / ASSET` onto one line.
+- Increases label print size for better readability.

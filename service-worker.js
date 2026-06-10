@@ -1,4 +1,4 @@
-const CACHE_NAME = "cdir-v3";
+const CACHE_NAME = "cdir-v4";
 const FILES = [
   "./",
   "./index.html",

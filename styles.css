@@ -211,15 +211,15 @@ td button {
   background: white;
   border: 1px solid #9ca3af;
   padding: 0.09in 0.12in;
-  font-size: 9pt;
-  line-height: 1.16;
+  font-size: 13pt;
+  line-height: 1.20;
   overflow: hidden;
 }
 
 .screenLabel.small {
   width: 3.5in;
   min-height: 1.125in;
-  font-size: 7.5pt;
+  font-size: 9pt;
 }
 
 .labelTitle {
@@ -231,7 +231,7 @@ td button {
 }
 
 .screenLabel.small .labelTitle {
-  font-size: 8.5pt;
+  font-size: 10pt;
 }
 
 .rule {
@@ -243,7 +243,7 @@ td button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 0.015in;
+  margin-bottom: 0.025in;
 }
 
 .labelLine span {
@@ -277,15 +277,15 @@ footer {
 body.print-large {
   --print-width: 4in;
   --print-height: 2.125in;
-  --print-font: 9pt;
-  --print-title: 11pt;
+  --print-font: 11pt;
+  --print-title: 13pt;
 }
 
 body.print-standard {
   --print-width: 3.5in;
   --print-height: 1.125in;
-  --print-font: 7.5pt;
-  --print-title: 8.5pt;
+  --print-font: 9pt;
+  --print-title: 10pt;
 }
 
 @media print {
@@ -310,7 +310,7 @@ body.print-standard {
     overflow: hidden;
     font-family: Arial, Helvetica, sans-serif;
     font-size: var(--print-font);
-    line-height: 1.16;
+    line-height: 1.20;
     color: #000;
   }
 
@@ -331,7 +331,7 @@ body.print-standard {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 0.015in;
+    margin-bottom: 0.025in;
   }
 
   .printLabel .labelLine span {
