@@ -1,4 +1,4 @@
-# Cellular Device Intake and Recycle — CDIR v17.2
+# Cellular Device Intake and Recycle — CDIR v18
 
 ## Purpose
 Static app for scanning or typing cellular device data, saving it to a project JSON file, printing labels, and exporting a final Excel workbook.
@@ -172,3 +172,18 @@ Use browser print dialog and select:
 - Added visible version stamp in the header.
 - Added Reload Latest Version button.
 - Service worker registration remains removed to reduce browser cache issues.
+
+
+## v18 export/report cleanup
+- Replaced separate export buttons with one `Export Spreadsheet` workflow.
+- Added Report Scope:
+  - All Visible Records
+  - Selected Records Only
+  - All Project Records
+- Added Report Type:
+  - Excel Workbook (.xlsx)
+  - CSV Backup (.csv)
+- Excel remains the default report format.
+- CSV moved into report type selection instead of being a main action.
+- Export filenames now use the project/report base name and date.
+- v17.2 workflow, filters, status fields, and labels remain unchanged.

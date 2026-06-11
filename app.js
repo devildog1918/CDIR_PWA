@@ -1,4 +1,4 @@
-/* CDIR v17.2 clean build */
+/* CDIR v18 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -8,7 +8,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 17.2,
+  version: 18,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -74,8 +74,7 @@ function init() {
     previewRecords(getSelectedRecords());
   });
 
-  $("exportXlsxBtn").addEventListener("click", exportXlsx);
-  $("exportCsvBtn").addEventListener("click", exportCsvBackup);
+  $("exportReportBtn").addEventListener("click", exportReport);
   $("clearAllBtn").addEventListener("click", clearAll);
 
   // Old versions used service workers. Remove them to stop stale app.js behavior.
@@ -604,7 +603,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 17.2,
+    version: 18,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: [],
@@ -708,14 +707,42 @@ function nextCdirNumberFromRecords() {
   return max + 1;
 }
 
-function exportCsvBackup() {
+
+function exportReport() {
+  const records = getReportRecords();
+  if (!records.length) {
+    alert("No records available for the selected report scope.");
+    return;
+  }
+  const type = $("reportType")?.value || "xlsx";
+  if (type === "csv") exportCsvBackup(records);
+  else exportXlsx(records);
+}
+
+function getReportRecords() {
+  const scope = $("reportScope")?.value || "all";
+  if (scope === "selected") return getSelectedRecords();
+  if (scope === "allRecords") return project.records || [];
+  return visibleRecordIndexes().map(i => project.records[i]).filter(Boolean);
+}
+
+function exportBaseFilename() {
+  const name = (project.projectName || "CDIR_Report")
+    .replace(/[^a-z0-9-_ ]/gi, "")
+    .trim()
+    .replace(/\s+/g, "_");
+  return `${name || "CDIR_Report"}_${todayISO()}`;
+}
+
+function exportCsvBackup(recordsOverride = null) {
   const headers = [...ORIGINAL_COLUMNS, "DEVICE GROUP", "MTN", "ASSET TAG / T#", "DISPOSITION STATUS", "DATE RECEIVED", "DATE STATUS CHANGED"];
-  const rows = project.records.map(r => [
+  const sourceRecords = recordsOverride || project.records;
+  const rows = sourceRecords.map(r => [
     r.date, r.vendor, r.qty, r.model, r.typeOfDevice, r.reason,
     r.userName, r.department, r.imei, r.iccid, r.deviceGroup, r.mtn, r.assetTag, r.dispositionStatus || "Pending Recycle", r.dateReceived || "", r.dateStatusChanged || ""
   ]);
   const csv = [headers, ...rows].map(row => row.map(csvCell).join(",")).join("\r\n");
-  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `CDIR_${todayISO()}_backup.csv`);
+  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `${exportBaseFilename()}_backup.csv`);
 }
 
 function csvCell(value) {
@@ -723,12 +750,13 @@ function csvCell(value) {
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-function exportXlsx() {
-  const phoneRows = project.records
+function exportXlsx(recordsOverride = null) {
+  const sourceRecords = recordsOverride || project.records;
+  const phoneRows = sourceRecords
     .filter(r => (r.deviceGroup || "").toLowerCase() !== "hot spot")
     .map(toOriginalRow);
 
-  const hotspotRows = project.records
+  const hotspotRows = sourceRecords
     .filter(r => (r.deviceGroup || "").toLowerCase() === "hot spot")
     .map(toOriginalRow);
 
@@ -742,7 +770,7 @@ function exportXlsx() {
     "xl/worksheets/sheet2.xml": sheetXml(ORIGINAL_COLUMNS, hotspotRows)
   };
 
-  downloadBlob(zipStore(files), `CDIR_${todayISO()}_Final.xlsx`);
+  downloadBlob(zipStore(files), `${exportBaseFilename()}.xlsx`);
 }
 
 function toOriginalRow(r) {

@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cellular Device Intake and Recycle</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="styles.css?v=17.2" />
+  <link rel="stylesheet" href="styles.css?v=18" />
 </head>
 <body>
   <div id="app">
     <header>
       <div>
         <h1>Cellular Device Intake and Recycle</h1>
-        <p class="sub">CDIR v17.2 — scan/type device data, save project file, print labels, export spreadsheet.</p>
-        <div class="versionStamp">Version: CDIR v17.2</div>
+        <p class="sub">CDIR v18 — scan/type device data, save project file, print labels, export spreadsheet.</p>
+        <div class="versionStamp">Version: CDIR v18</div>
       </div>
       <div class="status" id="saveStatus">No project file open</div>
     </header>
@@ -22,8 +22,8 @@
       <section class="card">
         <h2>1. Project File</h2>
         <div class="buttonRow">
-          <button id="newProjectBtn">Create New Project</button>
-          <button id="openProjectBtn">Open Project File</button>
+          <button id="newProjectBtn">New Project</button>
+          <button id="openProjectBtn">Open Project</button>
           <button id="saveProjectBtn">Save Project</button>
           <button id="downloadJsonBtn" class="secondary">Download JSON Backup</button>
         <button id="reloadLatestBtn" class="secondary">Reload Latest Version</button>
@@ -217,18 +217,37 @@
       </section>
 
       <section class="card">
-        <h2>7. Export</h2>
-        <div class="buttonRow">
-          <button id="exportXlsxBtn">Export Excel Workbook</button>
-          <button id="exportCsvBtn" class="secondary">Export CSV Backup</button>
-          <button id="clearAllBtn" class="danger">Clear Loaded Records</button>
+        <h2>7. Reports</h2>
+
+        <div class="grid compactGrid">
+          <label>Report Scope
+            <select id="reportScope">
+              <option value="all" selected>All Visible Records</option>
+              <option value="selected">Selected Records Only</option>
+              <option value="allRecords">All Project Records</option>
+            </select>
+          </label>
+
+          <label>Report Type
+            <select id="reportType">
+              <option value="xlsx" selected>Excel Workbook (.xlsx)</option>
+              <option value="csv">CSV Backup (.csv)</option>
+            </select>
+          </label>
         </div>
-        <p class="hint">Excel workbook includes two sheets: E-CYCLE and E-CYCLE - HOT SPOTS.</p>
+
+        <div class="buttonRow">
+          <button id="exportReportBtn">Export Spreadsheet</button>
+        </div>
+
+        <p class="hint">
+          Excel is the primary report format. CSV is available for simple backup or import work.
+        </p>
       </section>
     </main>
 
-    <footer>CDIR v17.2 — static app, no APIs, no service worker cache</footer>
+    <footer>CDIR v18 — static app, no APIs, no service worker cache</footer>
   </div>
-  <script src="app.js?v=17.2"></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>
