@@ -1,13 +1,14 @@
-/* CDIR v16 clean build */
+/* CDIR v17 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
-  "REASON", "USER NAME", "DEPARTMENT", "IMEI", "ICCID"
+  "REASON", "USER NAME", "DEPARTMENT", "IMEI", "ICCID",
+  "DISPOSITION STATUS", "DATE RECEIVED", "DATE STATUS CHANGED"
 ];
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 16,
+  version: 17,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -50,13 +51,16 @@ function init() {
 
   $("selectAllBtn").addEventListener("click", selectAll);
   $("selectNoneBtn").addEventListener("click", selectNone);
+  $("editSelectedBtn").addEventListener("click", editSelected);
+  $("previewSelectedActionBtn").addEventListener("click", previewSelectedFromAction);
+  $("deleteSelectedBtn").addEventListener("click", deleteSelected);
+  $("bulkStatusSelect").addEventListener("change", changeSelectedStatus);
+  $("statusFilter").addEventListener("change", () => { selected = new Set(); renderRecords(); });
+  $("typeFilter").addEventListener("change", () => { selected = new Set(); renderRecords(); });
 
   $("previewSelectedBtn").addEventListener("click", previewSelected);
   $("printSelectedBtn").addEventListener("click", printSelected);
   $("printAllBtn").addEventListener("click", printAll);
-  $("previewSelectedQrBtn").addEventListener("click", previewSelectedQr);
-  $("printSelectedQrBtn").addEventListener("click", printSelectedQr);
-  $("printAllQrBtn").addEventListener("click", printAllQr);
   $("clearPreviewBtn").addEventListener("click", clearPreview);
 
   $("exportXlsxBtn").addEventListener("click", exportXlsx);
@@ -93,6 +97,9 @@ function formRecord() {
     model: $("model").value.trim(),
     typeOfDevice: $("typeOfDevice").value.trim() || (group === "Hot Spot" ? "Hot Spot" : "Cell Phone"),
     reason: $("reason").value.trim() || "Recycle",
+    dispositionStatus: $("dispositionStatus")?.value || "Pending Recycle",
+    dateReceived: $("date").value || todayISO(),
+    dateStatusChanged: todayISO(),
     userName: $("userName").value.trim(),
     department: $("department").value.trim(),
     imei: digitsOnly($("imei").value),
@@ -125,6 +132,7 @@ function clearForm() {
   $("qty").value = 1;
   $("model").value = "";
   $("reason").value = "Recycle";
+  if ($("dispositionStatus")) $("dispositionStatus").value = "Pending Recycle";
   $("userName").value = "";
   $("department").value = "";
   $("imei").value = "";
@@ -163,12 +171,147 @@ function validate(r) {
   return warnings;
 }
 
+
+function normalizeRecord(record) {
+  if (!record.dispositionStatus) record.dispositionStatus = "Pending Recycle";
+  if (!record.dateReceived) record.dateReceived = record.date || todayISO();
+  if (!record.dateStatusChanged) record.dateStatusChanged = record.date || todayISO();
+  return record;
+}
+
+function normalizeAllRecords() {
+  (project.records || []).forEach(normalizeRecord);
+}
+
+function visibleRecordIndexes() {
+  const status = $("statusFilter")?.value || "All Statuses";
+  const type = $("typeFilter")?.value || "All Devices";
+
+  return project.records
+    .map((r, i) => ({ r: normalizeRecord(r), i }))
+    .filter(({ r }) => {
+      const statusOk = status === "All Statuses" || (r.dispositionStatus || "Pending Recycle") === status;
+      const isHotspot = String(r.deviceGroup || r.typeOfDevice || "").toLowerCase().includes("hot");
+      const typeOk = type === "All Devices" ||
+        (type === "Hot Spots" && isHotspot) ||
+        (type === "Cell Phones" && !isHotspot);
+      return statusOk && typeOk;
+    })
+    .map(x => x.i);
+}
+
+function updateDashboard() {
+  const records = project.records || [];
+  const counts = {
+    "Total Devices": records.length,
+    "Cell Phones": records.filter(r => !String(r.deviceGroup || r.typeOfDevice || "").toLowerCase().includes("hot")).length,
+    "Hot Spots": records.filter(r => String(r.deviceGroup || r.typeOfDevice || "").toLowerCase().includes("hot")).length,
+    "Received": 0,
+    "Pending Recycle": 0,
+    "Ready to Ship": 0,
+    "Shipped": 0,
+    "Recycled": 0,
+    "Returned to Inventory": 0,
+    "Seed Device Pool": 0
+  };
+  records.forEach(r => {
+    normalizeRecord(r);
+    if (counts[r.dispositionStatus] !== undefined) counts[r.dispositionStatus]++;
+  });
+  const el = $("dashboardCounters");
+  if (!el) return;
+  el.innerHTML = Object.entries(counts).map(([label, num]) => `
+    <div class="counterTile"><div class="num">${num}</div><div class="label">${esc(label)}</div></div>
+  `).join("");
+}
+
+function updateSelectionActionBar() {
+  const count = selected.size;
+  const countEl = $("selectionCount");
+  if (countEl) countEl.textContent = `${count} selected`;
+
+  const edit = $("editSelectedBtn");
+  const preview = $("previewSelectedActionBtn");
+  const del = $("deleteSelectedBtn");
+  const status = $("bulkStatusSelect");
+
+  [edit, preview, del, status].forEach(el => { if (el) el.classList.add("hidden"); });
+
+  if (count === 1) {
+    edit?.classList.remove("hidden");
+    preview?.classList.remove("hidden");
+    del?.classList.remove("hidden");
+  } else if (count > 1) {
+    preview?.classList.remove("hidden");
+    del?.classList.remove("hidden");
+    status?.classList.remove("hidden");
+  }
+}
+
+function getSingleSelectedIndex() {
+  return selected.size === 1 ? Array.from(selected)[0] : null;
+}
+
+function editSelected() {
+  const idx = getSingleSelectedIndex();
+  if (idx === null) {
+    alert("Select exactly one record to edit.");
+    return;
+  }
+  editRecord(idx);
+}
+
+function previewSelectedFromAction() {
+  const rows = getSelectedRecords();
+  if (!rows.length) {
+    alert("No records selected.");
+    return;
+  }
+  previewRecords(rows);
+}
+
+function deleteSelected() {
+  const indexes = Array.from(selected).sort((a,b) => b-a);
+  if (!indexes.length) {
+    alert("No records selected.");
+    return;
+  }
+  if (!confirm(`Delete ${indexes.length} selected record${indexes.length === 1 ? "" : "s"}?`)) return;
+  indexes.forEach(i => project.records.splice(i, 1));
+  selected = new Set();
+  project.updated = new Date().toISOString();
+  renderRecords();
+  saveProject(false);
+}
+
+function changeSelectedStatus() {
+  const value = $("bulkStatusSelect")?.value;
+  if (!value) return;
+  const today = todayISO();
+  selected.forEach(i => {
+    const record = project.records[i];
+    if (record) {
+      record.dispositionStatus = value;
+      record.dateStatusChanged = today;
+    }
+  });
+  project.updated = new Date().toISOString();
+  $("bulkStatusSelect").value = "";
+  renderRecords();
+  saveProject(false);
+}
+
 function renderRecords() {
+  normalizeAllRecords();
   const tbody = $("recordsTable").querySelector("tbody");
   tbody.innerHTML = "";
 
-  project.records.forEach((r, i) => {
+  const visibleIndexes = visibleRecordIndexes();
+
+  visibleIndexes.forEach((i) => {
+    const r = normalizeRecord(project.records[i]);
     const tr = document.createElement("tr");
+    if (selected.has(i)) tr.classList.add("selectedRow");
     tr.innerHTML = `
       <td><input class="printCheck" type="checkbox" data-select="${i}" ${selected.has(i) ? "checked" : ""}></td>
       <td>${i + 1}</td>
@@ -180,12 +323,7 @@ function renderRecords() {
       <td>${esc(r.iccid)}</td>
       <td>${esc(r.mtn)}</td>
       <td>${esc(r.assetTag)}</td>
-      <td>
-        <button class="secondary" data-preview="${i}">Preview</button>
-        <button class="secondary" data-print="${i}">Print</button>
-        <button class="secondary" data-edit="${i}">Edit</button>
-        <button class="danger" data-delete="${i}">Delete</button>
-      </td>
+      <td><span class="statusPill">${esc(r.dispositionStatus || "Pending Recycle")}</span></td>
     `;
     tbody.appendChild(tr);
   });
@@ -194,30 +332,18 @@ function renderRecords() {
     cb.addEventListener("change", () => {
       const i = Number(cb.dataset.select);
       cb.checked ? selected.add(i) : selected.delete(i);
+      renderRecords();
     });
   });
 
-  tbody.querySelectorAll("[data-preview]").forEach(btn => {
-    btn.addEventListener("click", () => previewRecords([project.records[Number(btn.dataset.preview)]]));
-  });
-
-  tbody.querySelectorAll("[data-print]").forEach(btn => {
-    btn.addEventListener("click", () => printRecords([project.records[Number(btn.dataset.print)]]));
-  });
-
-  tbody.querySelectorAll("[data-edit]").forEach(btn => {
-    btn.addEventListener("click", () => editRecord(Number(btn.dataset.edit)));
-  });
-
-  tbody.querySelectorAll("[data-delete]").forEach(btn => {
-    btn.addEventListener("click", () => deleteRecord(Number(btn.dataset.delete)));
-  });
-
-  $("counter").textContent = `${project.records.length} record${project.records.length === 1 ? "" : "s"}`;
+  $("counter").textContent = `${visibleIndexes.length} visible / ${project.records.length} total`;
+  updateDashboard();
+  updateSelectionActionBar();
 }
 
+
 function selectAll() {
-  selected = new Set(project.records.map((_, i) => i));
+  selected = new Set(visibleRecordIndexes());
   renderRecords();
 }
 
@@ -455,7 +581,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 16,
+    version: 17,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: [],
@@ -490,6 +616,7 @@ async function openProject() {
     const text = await file.text();
     project = JSON.parse(text);
     if (!Array.isArray(project.records)) project.records = [];
+    normalizeAllRecords();
     assignMissingCdirIds();
     selected = new Set(project.records.map((_, i) => i));
     renderRecords();
@@ -558,98 +685,11 @@ function nextCdirNumberFromRecords() {
   return max + 1;
 }
 
-function previewSelectedQr() {
-  const rows = getSelectedRecords();
-  if (!rows.length) {
-    alert("No records selected.");
-    return;
-  }
-  previewQrRecords(rows);
-}
-
-function printSelectedQr() {
-  const rows = getSelectedRecords();
-  if (!rows.length) {
-    alert("No records selected.");
-    return;
-  }
-  printQrRecords(rows);
-}
-
-function printAllQr() {
-  if (!project.records.length) {
-    alert("No records to print.");
-    return;
-  }
-  printQrRecords(project.records);
-}
-
-function printQrRecords(records) {
-  previewQrRecords(records);
-  setTimeout(() => window.print(), 500);
-}
-
-function previewQrRecords(records) {
-  records.forEach(record => ensureCdirId(record));
-  project.updated = new Date().toISOString();
-  saveProject(false);
-  $("labelPreview").innerHTML = records.map(qrOnlyLabelHtml).join("");
-  renderRealQrCodes();
-}
-
-function qrOnlyLabelHtml(r) {
-  const id = ensureCdirId(r);
-
-  return `
-    <section class="qrOnlyLabel">
-      <div class="qrOnlyBox" data-qr="${escAttr(id)}"></div>
-      <div class="qrOnlyText">
-        <div class="qrOnlyTitle">QR RECORD</div>
-        <div class="qrOnlyId">${esc(id)}</div>
-      </div>
-    </section>
-  `;
-}
-
-
-function qrPayload(r) {
-  return ensureCdirId(r);
-}
-
-function renderRealQrCodes() {
-  if (typeof QRCode === "undefined") {
-    alert("QR library did not load. Confirm qrcode.min.js is uploaded with the app files.");
-    return;
-  }
-
-  document.querySelectorAll(".qrOnlyBox[data-qr]").forEach(box => {
-    const text = box.getAttribute("data-qr") || "";
-    box.innerHTML = "";
-    new QRCode(box, {
-      text: text,
-      width: 260,
-      height: 260,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.L
-    });
-  });
-}
-
-function escAttr(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-
 function exportCsvBackup() {
-  const headers = [...ORIGINAL_COLUMNS, "DEVICE GROUP", "MTN", "ASSET TAG / T#"];
+  const headers = [...ORIGINAL_COLUMNS, "DEVICE GROUP", "MTN", "ASSET TAG / T#", "DISPOSITION STATUS", "DATE RECEIVED", "DATE STATUS CHANGED"];
   const rows = project.records.map(r => [
     r.date, r.vendor, r.qty, r.model, r.typeOfDevice, r.reason,
-    r.userName, r.department, r.imei, r.iccid, r.deviceGroup, r.mtn, r.assetTag
+    r.userName, r.department, r.imei, r.iccid, r.deviceGroup, r.mtn, r.assetTag, r.dispositionStatus || "Pending Recycle", r.dateReceived || "", r.dateStatusChanged || ""
   ]);
   const csv = [headers, ...rows].map(row => row.map(csvCell).join(",")).join("\r\n");
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `CDIR_${todayISO()}_backup.csv`);
