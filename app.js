@@ -1,4 +1,4 @@
-/* CDIR v17 clean build */
+/* CDIR v17.1 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -8,7 +8,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 17,
+  version: 17.1,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -235,18 +235,27 @@ function updateSelectionActionBar() {
   const del = $("deleteSelectedBtn");
   const status = $("bulkStatusSelect");
 
-  [edit, preview, del, status].forEach(el => { if (el) el.classList.add("hidden"); });
+  [edit, preview, del, status].forEach(el => {
+    if (el) el.classList.add("hidden");
+  });
 
   if (count === 1) {
-    edit?.classList.remove("hidden");
-    preview?.classList.remove("hidden");
-    del?.classList.remove("hidden");
+    if (edit) edit.classList.remove("hidden");
+    if (preview) {
+      preview.classList.remove("hidden");
+      preview.textContent = "Preview Label";
+    }
+    if (del) del.classList.remove("hidden");
   } else if (count > 1) {
-    preview?.classList.remove("hidden");
-    del?.classList.remove("hidden");
-    status?.classList.remove("hidden");
+    if (preview) {
+      preview.classList.remove("hidden");
+      preview.textContent = "Preview Labels";
+    }
+    if (del) del.classList.remove("hidden");
+    if (status) status.classList.remove("hidden");
   }
 }
+
 
 function getSingleSelectedIndex() {
   return selected.size === 1 ? Array.from(selected)[0] : null;
@@ -331,8 +340,11 @@ function renderRecords() {
   tbody.querySelectorAll("[data-select]").forEach(cb => {
     cb.addEventListener("change", () => {
       const i = Number(cb.dataset.select);
-      cb.checked ? selected.add(i) : selected.delete(i);
-      renderRecords();
+      if (cb.checked) selected.add(i);
+      else selected.delete(i);
+      updateSelectionActionBar();
+      const row = cb.closest("tr");
+      if (row) row.classList.toggle("selectedRow", cb.checked);
     });
   });
 
@@ -581,7 +593,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 17,
+    version: 17.1,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: [],

@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cellular Device Intake and Recycle</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="styles.css?v=17.1" />
 </head>
 <body>
   <div id="app">
     <header>
       <div>
         <h1>Cellular Device Intake and Recycle</h1>
-        <p class="sub">CDIR v16 — scan/type device data, save project file, print labels, export spreadsheet.</p>
+        <p class="sub">CDIR v17.1 — scan/type device data, save project file, print labels, export spreadsheet.</p>
       </div>
       <div class="status" id="saveStatus">No project file open</div>
     </header>
@@ -105,13 +105,49 @@
 
       <section class="card">
         <div class="sectionHeader">
-          <h2>3. Review Records</h2>
+          <h2>4. Review Records</h2>
           <div class="counter" id="counter">0 records</div>
         </div>
 
-        <div class="buttonRow topControls">
-          <button id="selectAllBtn" class="secondary">Select All Labels</button>
+        <div class="filtersBar">
+          <label>Status Filter
+            <select id="statusFilter">
+              <option>All Statuses</option>
+              <option>Received</option>
+              <option>Pending Recycle</option>
+              <option>Ready to Ship</option>
+              <option>Shipped</option>
+              <option>Recycled</option>
+              <option>Returned to Inventory</option>
+              <option>Seed Device Pool</option>
+            </select>
+          </label>
+          <label>Device Type Filter
+            <select id="typeFilter">
+              <option>All Devices</option>
+              <option>Cell Phones</option>
+              <option>Hot Spots</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="selectionActionBar">
+          <span id="selectionCount">0 selected</span>
+          <button id="selectAllBtn" class="secondary">Select Visible Records</button>
           <button id="selectNoneBtn" class="secondary">Select None</button>
+          <button id="editSelectedBtn" class="secondary hidden">Edit</button>
+          <button id="previewSelectedActionBtn" class="secondary hidden">Preview Label</button>
+          <select id="bulkStatusSelect" class="hidden">
+            <option value="">Change Status...</option>
+            <option>Received</option>
+            <option>Pending Recycle</option>
+            <option>Ready to Ship</option>
+            <option>Shipped</option>
+            <option>Recycled</option>
+            <option>Returned to Inventory</option>
+            <option>Seed Device Pool</option>
+          </select>
+          <button id="deleteSelectedBtn" class="danger hidden">Delete</button>
         </div>
 
         <div class="tableWrap">
@@ -128,7 +164,7 @@
                 <th>ICCID</th>
                 <th>MTN</th>
                 <th>Asset Tag</th>
-                <th>Actions</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -161,11 +197,8 @@
 
         <div class="buttonRow">
           <button id="previewSelectedBtn">Preview Selected Labels</button>
-          <button id="printSelectedBtn">Print Selected Text Labels</button>
-          <button id="printAllBtn" class="secondary">Print All Text Labels</button>
-          <button id="previewSelectedQrBtn" class="secondary">Preview Selected QR Labels</button>
-          <button id="printSelectedQrBtn" class="secondary">Print Selected QR Labels</button>
-          <button id="printAllQrBtn" class="secondary">Print All QR Labels</button>
+          <button id="printSelectedBtn">Print Selected Labels</button>
+          <button id="printAllBtn" class="secondary">Print All Labels</button>
           <button id="clearPreviewBtn" class="secondary">Clear Preview</button>
         </div>
 
@@ -173,14 +206,14 @@
       </section>
 
       <section class="card printOnlyCard">
-        <h2>5. Label Preview / Print Area</h2>
+        <h2>6. Label Preview / Print Area</h2>
         <div id="labelPreview" class="labelPreview">
           <p class="hint">No preview yet. Select records and click Preview Selected Labels.</p>
         </div>
       </section>
 
       <section class="card">
-        <h2>6. Export</h2>
+        <h2>7. Export</h2>
         <div class="buttonRow">
           <button id="exportXlsxBtn">Export Excel Workbook</button>
           <button id="exportCsvBtn" class="secondary">Export CSV Backup</button>
@@ -190,10 +223,8 @@
       </section>
     </main>
 
-    <footer>CDIR v16 — static app, no APIs, no service worker cache</footer>
+    <footer>CDIR v17.1 — static app, no APIs, no service worker cache</footer>
   </div>
-
-  <script src="qrcode.min.js?v=16"></script>
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=17.1"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# Cellular Device Intake and Recycle — CDIR v16
+# Cellular Device Intake and Recycle — CDIR v17.1
 
 ## Purpose
 Static app for scanning or typing cellular device data, saving it to a project JSON file, printing labels, and exporting a final Excel workbook.
@@ -127,3 +127,35 @@ Use browser print dialog and select:
 - Removed model/user/IMEI text from the QR label to prevent overlap.
 - QR payload still contains only the global CDIR ID, example: `CDIR-000122`.
 - Layout target: 3.5" wide × 1.25" high.
+
+
+## v17 Workflow Edition
+- Rebuilt from v16.
+- QR functionality retired.
+- Removed row-level Preview/Edit/Delete buttons.
+- Added selection-driven action bar:
+  - 1 selected: Edit, Preview Label, Delete
+  - Multiple selected: Preview Labels, Change Status, Delete
+- Added Disposition Status:
+  - Received
+  - Pending Recycle
+  - Ready to Ship
+  - Shipped
+  - Recycled
+  - Returned to Inventory
+  - Seed Device Pool
+- Added dashboard counters.
+- Added status filter.
+- Added device type filter.
+- Added bulk status changes.
+- Spreadsheet export now includes:
+  - DISPOSITION STATUS
+  - DATE RECEIVED
+  - DATE STATUS CHANGED
+
+
+## v17.1 cleanup
+- Removed leftover QR buttons from the interface.
+- Fixed selection action bar so Edit appears when exactly one record is selected.
+- Kept row-level action buttons removed.
+- QR functionality remains retired.
