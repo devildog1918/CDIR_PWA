@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cellular Device Intake and Recycle</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="styles.css?v=17.1" />
+  <link rel="stylesheet" href="styles.css?v=17.2" />
 </head>
 <body>
   <div id="app">
     <header>
       <div>
         <h1>Cellular Device Intake and Recycle</h1>
-        <p class="sub">CDIR v17.1 — scan/type device data, save project file, print labels, export spreadsheet.</p>
+        <p class="sub">CDIR v17.2 — scan/type device data, save project file, print labels, export spreadsheet.</p>
+        <div class="versionStamp">Version: CDIR v17.2</div>
       </div>
       <div class="status" id="saveStatus">No project file open</div>
     </header>
@@ -25,6 +26,7 @@
           <button id="openProjectBtn">Open Project File</button>
           <button id="saveProjectBtn">Save Project</button>
           <button id="downloadJsonBtn" class="secondary">Download JSON Backup</button>
+        <button id="reloadLatestBtn" class="secondary">Reload Latest Version</button>
         </div>
         <p class="hint">Project data saves to a selected JSON file. No SharePoint API, Graph API, database, or browser storage.</p>
       </section>
@@ -180,10 +182,12 @@
             <input id="labelTitle" value="CELLULAR DEVICE RECYCLE" />
           </label>
 
-          <label>Label Size
-            <select id="labelSize">
-              <option value="large">2-1/8&quot; x 4&quot; Large Address</option>
-              <option value="standard">1-1/8&quot; x 3-1/2&quot; Standard Address</option>
+          <label>Label Type
+            <select id="labelType">
+              <option value="recycle" selected>Recycle Label</option>
+              <option value="inventory">Inventory Label</option>
+              <option value="seed">Seed Device Label</option>
+              <option value="return">Return Label</option>
             </select>
           </label>
 
@@ -223,8 +227,8 @@
       </section>
     </main>
 
-    <footer>CDIR v17.1 — static app, no APIs, no service worker cache</footer>
+    <footer>CDIR v17.2 — static app, no APIs, no service worker cache</footer>
   </div>
-  <script src="app.js?v=17.1"></script>
+  <script src="app.js?v=17.2"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# Cellular Device Intake and Recycle — CDIR v17.1
+# Cellular Device Intake and Recycle — CDIR v17.2
 
 ## Purpose
 Static app for scanning or typing cellular device data, saving it to a project JSON file, printing labels, and exporting a final Excel workbook.
@@ -159,3 +159,16 @@ Use browser print dialog and select:
 - Fixed selection action bar so Edit appears when exactly one record is selected.
 - Kept row-level action buttons removed.
 - QR functionality remains retired.
+
+
+## v17.2 cleanup
+- Removed the Label Size dropdown.
+- Label size is now hard-coded to 3.5" wide × 1.25" high.
+- Added Label Type dropdown for future label workflows:
+  - Recycle Label
+  - Inventory Label
+  - Seed Device Label
+  - Return Label
+- Added visible version stamp in the header.
+- Added Reload Latest Version button.
+- Service worker registration remains removed to reduce browser cache issues.

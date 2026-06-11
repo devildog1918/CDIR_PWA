@@ -939,3 +939,19 @@ button#printSelectedQrBtn,
 button#printAllQrBtn {
   display: none !important;
 }
+
+
+/* CDIR v17.2 cache/label cleanup */
+:root,
+body,
+body.label-large,
+body.label-standard {
+  --label-width: 3.5in !important;
+  --label-height: 1.25in !important;
+}
+
+.versionStamp {
+  font-size: 12px;
+  color: #d1d5db;
+  margin-top: 4px;
+}

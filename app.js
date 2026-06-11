@@ -1,4 +1,4 @@
-/* CDIR v17.1 clean build */
+/* CDIR v17.2 clean build */
 
 const ORIGINAL_COLUMNS = [
   "DATE", "VENDOR", "QTY", "MODEL", "TYPE OF DEVICE",
@@ -8,7 +8,7 @@ const ORIGINAL_COLUMNS = [
 
 let project = {
   app: "Cellular Device Intake and Recycle",
-  version: 17.1,
+  version: 17.2,
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   records: []
@@ -30,13 +30,13 @@ function init() {
   renderRecords();
 
   $("deviceGroup").addEventListener("change", setDefaultsForGroup);
-  $("labelSize").addEventListener("change", applyLabelSize);
   $("labelDensity").addEventListener("change", () => previewRecords(getCurrentPreviewRecords()));
 
   $("newProjectBtn").addEventListener("click", createProject);
   $("openProjectBtn").addEventListener("click", openProject);
   $("saveProjectBtn").addEventListener("click", () => saveProject(true));
   $("downloadJsonBtn").addEventListener("click", downloadJson);
+  $("reloadLatestBtn").addEventListener("click", reloadLatestVersion);
 
   $("applyScanBtn").addEventListener("click", applyScan);
   $("quickScan").addEventListener("keydown", e => {
@@ -62,6 +62,17 @@ function init() {
   $("printSelectedBtn").addEventListener("click", printSelected);
   $("printAllBtn").addEventListener("click", printAll);
   $("clearPreviewBtn").addEventListener("click", clearPreview);
+  $("labelType").addEventListener("change", () => {
+    const type = $("labelType").value;
+    const map = {
+      recycle: "CELLULAR DEVICE RECYCLE",
+      inventory: "CELLULAR DEVICE INVENTORY",
+      seed: "SEED DEVICE",
+      return: "DEVICE RETURN"
+    };
+    $("labelTitle").value = map[type] || "CELLULAR DEVICE RECYCLE";
+    previewRecords(getSelectedRecords());
+  });
 
   $("exportXlsxBtn").addEventListener("click", exportXlsx);
   $("exportCsvBtn").addEventListener("click", exportCsvBackup);
@@ -84,7 +95,7 @@ function setDefaultsForGroup() {
 
 function applyLabelSize() {
   document.body.classList.remove("label-large", "label-standard");
-  document.body.classList.add($("labelSize").value === "standard" ? "label-standard" : "label-large");
+  document.body.classList.add("label-standard");
 }
 
 function formRecord() {
@@ -593,7 +604,7 @@ function formatMtn(value) {
 async function createProject() {
   project = {
     app: "Cellular Device Intake and Recycle",
-    version: 17.1,
+    version: 17.2,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     records: [],
@@ -816,5 +827,18 @@ function concatArrays(arrays){const len=arrays.reduce((sum,a)=>sum+a.length,0);c
 let crcTable = null;
 function makeCrcTable(){const table=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=((c&1)?(0xedb88320^(c>>>1)):(c>>>1));table[n]=c>>>0;}return table;}
 function crc32(data){if(!crcTable)crcTable=makeCrcTable();let c=0xffffffff;for(let i=0;i<data.length;i++)c=crcTable[(c^data[i])&0xff]^(c>>>8);return(c^0xffffffff)>>>0;}
+
+
+function reloadLatestVersion() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations()
+      .then(regs => Promise.all(regs.map(reg => reg.unregister())))
+      .finally(() => {
+        window.location.href = window.location.pathname + "?v=" + Date.now();
+      });
+  } else {
+    window.location.href = window.location.pathname + "?v=" + Date.now();
+  }
+}
 
 document.addEventListener("DOMContentLoaded", init);
